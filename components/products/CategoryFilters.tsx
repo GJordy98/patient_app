@@ -1,0 +1,42 @@
+import React from 'react';
+
+interface Category {
+  id: string | null;
+  name: string;
+  icon?: string;
+}
+
+interface CategoryFiltersProps {
+  categories: Category[];
+  selectedCategoryId: string | null;
+  onSelectCategory: (id: string | null) => void;
+}
+
+const CategoryFilters: React.FC<CategoryFiltersProps> = ({ 
+  categories, 
+  selectedCategoryId, 
+  onSelectCategory 
+}) => {
+  return (
+    <div className="mb-6 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex gap-3 min-w-max">
+        {categories.map((cat) => (
+          <button
+            key={cat.id || 'all'}
+            onClick={() => onSelectCategory(cat.id)}
+            className={`px-4 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap border-2 ${
+              selectedCategoryId === cat.id
+                ? 'bg-primary text-white shadow-md border-primary'
+                : 'bg-white dark:bg-gray-800 hover:bg-primary/5 border-gray-100 dark:border-gray-700'
+            }`}
+          >
+            <span className="material-symbols-outlined text-lg">{cat.icon}</span>
+            {cat.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default CategoryFilters;

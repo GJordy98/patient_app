@@ -1,26 +1,347 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0&display=swap");
 @import "tailwindcss";
 
+/* Tailwind v4: class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tailwind v4 Theme Configuration */
+@theme {
+  --color-primary: #1fa01a;
+  --color-primary-dark: #178012;
+  --color-primary-light: #d4f5d2;
+  --color-secondary: #f0faf0;
+  --color-text-dark: #1a2e1a;
+  --color-accent: #fd7e14;
+  --font-display: "Outfit", sans-serif;
+}
+
+/* ===== Light Mode Variables ===== */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1a2e1a;
+  --card-bg: #ffffff;
+  --card-border: #e8f5e8;
+  --input-bg: #f8fdf8;
+  --input-border: #d4ead4;
+  --surface: #f8fdf8;
+  --muted: #6b8f6b;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ===== Dark Mode Variables ===== */
+.dark {
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --input-bg: #1e293b;
+  --input-border: #475569;
+  --surface: #1e293b;
+  --muted: #94a3b8;
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* ===================================================================
+   GLOBAL DARK MODE OVERRIDES
+   These rules automatically switch common UI patterns to dark mode
+   when .dark is applied to <html>, ensuring ALL pages are consistent.
+   =================================================================== */
+
+/* --- Backgrounds --- */
+.dark main,
+.dark section {
+  transition: background-color 0.3s ease;
+}
+
+/* White backgrounds → dark slate */
+:where(.dark) .bg-white {
+  background-color: var(--card-bg) !important;
+}
+
+/* Gray-50 surfaces (page backgrounds) → deep navy */
+:where(.dark) .bg-gray-50 {
+  background-color: var(--background) !important;
+}
+
+/* Gray-100 hover states → slightly lighter */
+:where(.dark) .hover\:bg-gray-50:hover,
+:where(.dark) .hover\:bg-gray-100:hover {
+  background-color: #334155 !important;
+}
+
+:where(.dark) .bg-gray-100 {
+  background-color: #334155 !important;
+}
+
+/* Secondary bg */
+:where(.dark) .bg-secondary {
+  background-color: #1e293b !important;
+}
+
+/* --- Text Colors --- */
+:where(.dark) .text-gray-900 {
+  color: #f1f5f9 !important;
+}
+
+:where(.dark) .text-gray-800 {
+  color: #e2e8f0 !important;
+}
+
+:where(.dark) .text-gray-700 {
+  color: #cbd5e1 !important;
+}
+
+:where(.dark) .text-gray-600 {
+  color: #94a3b8 !important;
+}
+
+:where(.dark) .text-gray-500 {
+  color: #94a3b8 !important;
+}
+
+:where(.dark) .text-gray-400 {
+  color: #64748b !important;
+}
+
+/* --- Border Colors --- */
+:where(.dark) .border-gray-100,
+:where(.dark) .border-gray-200 {
+  border-color: #334155 !important;
+}
+
+:where(.dark) .border-gray-300 {
+  border-color: #475569 !important;
+}
+
+:where(.dark) .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+:where(.dark) .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #334155 !important;
+}
+
+/* --- Inputs & Forms --- */
+:where(.dark) input,
+:where(.dark) textarea,
+:where(.dark) select {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--foreground) !important;
+}
+
+:where(.dark) input::placeholder,
+:where(.dark) textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* --- Cards & Panels --- */
+:where(.dark) .shadow-sm,
+:where(.dark) .shadow-md,
+:where(.dark) .shadow-lg,
+:where(.dark) .shadow-xl,
+:where(.dark) .shadow-2xl {
+  --tw-shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* --- Specific UI patterns --- */
+/* Header */
+:where(.dark) header {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  border-bottom-color: #334155 !important;
+}
+
+/* Footer */
+:where(.dark) footer {
+  background-color: #0f172a !important;
+  border-top-color: #334155 !important;
+}
+
+/* Success/Error message backgrounds */
+:where(.dark) .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+:where(.dark) .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Primary tinted backgrounds */
+:where(.dark) .bg-primary\/5 {
+  background-color: rgba(46, 139, 87, 0.15) !important;
+}
+
+/* --- Scrollbar Dark Mode --- */
+:where(.dark) ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+:where(.dark) ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+:where(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* ===== End Global Dark Mode Overrides ===== */
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "liga";
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+
+  font-variation-settings:
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-in;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+/* Scroll personnalisé */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #1fa01a, #178012);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #178012;
+}
+
+/* ===== Order Page Styles ===== */
+
+/* Slow pulse for active timeline step */
+@keyframes pulseSlow {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(31, 160, 26, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(31, 160, 26, 0);
+  }
+}
+.animate-pulse-slow {
+  animation: pulseSlow 2s ease-in-out infinite;
+}
+
+/* Premium entrance animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Shimmer for loading skeletons */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, #f0faf0 25%, #d4f5d2 50%, #f0faf0 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+/* Hero gradient overlay */
+.hero-gradient {
+  background: linear-gradient(135deg, #1fa01a 0%, #178012 60%, #0f5c0a 100%);
+}
+
+/* Hide scrollbar for horizontal tabs */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
