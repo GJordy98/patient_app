@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { Search, ChevronDown, SearchX } from 'lucide-react';
 
 const faqData = [
   {
@@ -90,7 +91,7 @@ export default function FAQPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50 pt-6 pb-20">
+      <main className="min-h-screen bg-[#F8FAFC] pt-6 pb-20">
         <div className="container mx-auto px-4 max-w-5xl">
 
           {/* Hero */}
@@ -106,7 +107,7 @@ export default function FAQPage() {
           {/* Search */}
           <div className="max-w-2xl mx-auto mb-10">
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">search</span>
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
               <input
                 type="text"
                 value={searchQuery}
@@ -151,9 +152,7 @@ export default function FAQPage() {
                       <details key={idx} className="group bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                         <summary className="flex cursor-pointer list-none items-center justify-between font-medium text-gray-900">
                           <span>{item.q}</span>
-                          <span className="material-symbols-outlined transition-transform group-open:rotate-180 text-gray-400">
-                            expand_more
-                          </span>
+                          <ChevronDown size={18} className="transition-transform group-open:rotate-180 text-gray-400 shrink-0 ml-2" />
                         </summary>
                         <div className="mt-4 text-gray-600 leading-relaxed text-sm">
                           {item.a}
@@ -166,15 +165,12 @@ export default function FAQPage() {
 
               {searchQuery && filteredData.length === 0 && (
                 <div className="text-center py-12 text-gray-400">
-                  <span className="material-symbols-outlined text-5xl mb-4 block">search_off</span>
+                  <SearchX size={48} className="mx-auto mb-4 opacity-30" />
                   <p className="text-lg font-medium">Aucun résultat trouvé pour &quot;{searchQuery}&quot;</p>
                 </div>
               )}
             </div>
           </div>
-
-          {/* Footer CTA */}
-          
         </div>
       </main>
       <Footer />

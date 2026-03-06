@@ -34,19 +34,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
   const [cartTotal, setCartTotal] = useState(0);
 
-  const isMock = useCallback(() => api.isMockEnabled(), []);
-
   const refreshCart = useCallback(async () => {
     try {
       if (!api.isAuthenticated()) return;
       setLoading(true);
-
-      // In mock mode, read from localStorage mock cart
-      if (isMock()) {
-        const stored: CartItem[] = JSON.parse(localStorage.getItem('mock_cart_items') || '[]');
-        setItems(stored);
-        return;
-      }
 
       const data = await api.getCart();
       
@@ -111,7 +102,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  }, [isMock]);
+  }, []);
 
   useEffect(() => {
     refreshCart();
@@ -119,40 +110,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addItem = async (productId: string, pharmacyId: string, quantity: number, productInfo?: Product) => {
     try {
-      // In mock mode, manage cart locally
-      if (isMock()) {
-        setItems(prev => {
-          const existing = prev.find(i => i.product_id === productId);
-          let newItems: CartItem[];
-          if (existing) {
-            newItems = prev.map(i =>
-              i.product_id === productId
-                ? { ...i, quantity: i.quantity + quantity }
-                : i
-            );
-          } else {
-            const newItem: CartItem = {
-              id: `mock-${Date.now()}`,
-              product_id: productId,
-              product_name: productInfo?.name || 'Produit',
-              quantity,
-              price: productInfo?.price || 0,
-              pharmacy_id: pharmacyId,
-              product: {
-                id: productId,
-                name: productInfo?.name || 'Produit',
-                dci: productInfo?.dci,
-                image: productInfo?.image,
-                price: productInfo?.price || 0,
-              } as Product,
-            };
-            newItems = [...prev, newItem];
-          }
-          localStorage.setItem('mock_cart_items', JSON.stringify(newItems));
-          return newItems;
-        });
-        return;
-      }
       console.log(`[CartContext] addItem: productId=${productId}, pharmacyId=${pharmacyId}, quantity=${quantity}`);
       const result = await api.addToCart(productId, quantity, pharmacyId);
       console.log('[CartContext] addToCart result:', result);
@@ -187,14 +144,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const removeItem = async (itemId: string) => {
     try {
-      if (isMock()) {
-        setItems(prev => {
-          const newItems = prev.filter(i => i.id !== itemId);
-          localStorage.setItem('mock_cart_items', JSON.stringify(newItems));
-          return newItems;
-        });
-        return;
-      }
       // Find the item to get its quantity so we remove all units
       const item = items.find(i => i.id === itemId);
       const qty = item ? item.quantity : 1;
@@ -208,21 +157,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateQuantity = async (itemId: string, quantity: number) => {
     try {
-      if (isMock()) {
-        if (quantity <= 0) {
-          await removeItem(itemId);
-          return;
-        }
-        setItems(prev => {
-          const newItems = prev.map(i =>
-            i.id === itemId ? { ...i, quantity } : i
-          );
-          localStorage.setItem('mock_cart_items', JSON.stringify(newItems));
-          return newItems;
-        });
-        return;
-      }
-
       const item = items.find(i => i.id === itemId);
       if (!item) return;
 

@@ -83,10 +83,15 @@ export interface CartResponse {
 export interface AppNotification {
   id: string;
   title: string;
+  // Le backend renvoie "content" ; on normalise en "message" côté front
   message: string;
+  content?: string;          // alias backend
   created_at: string;
   is_read: boolean;
-  type?: string;
+  read?: boolean;            // alias backend
+  type?: string;             // parfois absent
+  order_id?: string;         // ID commande liée (peut être absent)
+  data?: Record<string, unknown>;
 }
 
 export interface Wallet {

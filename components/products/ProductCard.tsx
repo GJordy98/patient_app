@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pill, Building2, Info, ShoppingCart } from 'lucide-react';
 
 interface ProductCardProps {
   product: {
@@ -38,12 +39,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div
-      className="group relative flex flex-col h-full bg-white dark:bg-gray-800 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1"
+      className="group relative flex flex-col h-full bg-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1"
       style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.06)', border: '1px solid #e8f5e8' }}
       onClick={onViewDetails}
     >
       {/* Image / Icon area */}
-      <div className={`relative h-44 flex items-center justify-center ${color.bg} dark:bg-gray-700/30 overflow-hidden`}>
+      <div className={`relative h-44 flex items-center justify-center ${color.bg} overflow-hidden`}>
         {product.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -57,7 +58,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               className={`w-16 h-16 rounded-2xl ${color.bg} flex items-center justify-center shadow-sm`}
               style={{ border: '1.5px solid rgba(0,0,0,0.05)' }}
             >
-              <span className={`material-symbols-outlined text-4xl ${color.text}`}>medication</span>
+              <Pill size={36} className={color.text} />
             </div>
           </div>
         )}
@@ -75,9 +76,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
       {/* Content */}
       <div className="flex flex-col flex-1 p-4 gap-2.5">
 
-        {/* Pharmacy badge — toujours visible */}
+        {/* Pharmacy badge */}
         <div className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[14px] text-primary">local_pharmacy</span>
+          <Building2 size={14} className="text-primary shrink-0" />
           {hasPharmacy ? (
             <span className="text-[11px] font-semibold text-primary truncate">{pharmacyName}</span>
           ) : (
@@ -86,19 +87,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Product name */}
-        <h3 className="font-bold text-gray-900 dark:text-white line-clamp-2 text-[15px] leading-snug min-h-10">
+        <h3 className="font-bold text-gray-900 line-clamp-2 text-[15px] leading-snug min-h-10">
           {product.name}
         </h3>
 
         {/* DCI */}
         {product.dci && (
-          <p className="text-[12px] text-gray-500 dark:text-gray-400 truncate">
+          <p className="text-[12px] text-gray-500 truncate">
             <span className="font-semibold text-gray-400">DCI :</span> {product.dci}
           </p>
         )}
 
         {/* Price */}
-        <div className="mt-auto pt-3 border-t border-gray-50 dark:border-gray-700">
+        <div className="mt-auto pt-3 border-t border-gray-50">
           {price > 0 ? (
             <p className="text-xl font-black text-primary">
               {price.toLocaleString('fr-FR')}{' '}
@@ -113,9 +114,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <div className="flex gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); onViewDetails(); }}
-            className="flex-1 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary/8 hover:text-primary font-semibold text-[12px] flex items-center justify-center gap-1.5 transition-all"
+            className="flex-1 py-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-primary/8 hover:text-primary font-semibold text-[12px] flex items-center justify-center gap-1.5 transition-all"
           >
-            <span className="material-symbols-outlined text-[16px]">info</span>
+            <Info size={14} />
             Détails
           </button>
           <button
@@ -124,12 +125,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
             title={hasPharmacy ? 'Ajouter au panier' : "Produit sans pharmacie associée"}
             className={`flex-1 py-2.5 rounded-xl font-bold text-[12px] flex items-center justify-center gap-1.5 transition-all ${
               hasPharmacy
-                ? 'bg-primary text-white hover:bg-primary/90 active:scale-95'
-                : 'bg-gray-200 dark:bg-gray-600 text-gray-400 cursor-not-allowed opacity-60'
+                ? 'bg-[#22C55E] hover:bg-[#16A34A] text-white active:scale-95'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60'
             }`}
-            style={hasPharmacy ? { boxShadow: '0 2px 8px rgba(31,160,26,0.3)' } : {}}
+            style={hasPharmacy ? { boxShadow: '0 2px 8px rgba(34,197,94,0.3)' } : {}}
           >
-            <span className="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+            <ShoppingCart size={14} />
             Ajouter
           </button>
         </div>

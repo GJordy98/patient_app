@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { Clock } from 'lucide-react';
 
 interface TrackingMapProps {
   pharmacyLat: number;
@@ -197,17 +198,17 @@ const TrackingMap: React.FC<TrackingMapProps> = ({
   const etaMinutes = isDeliveryActive ? Math.max(3, Math.round((1 - progressRef.current) * 25)) : null;
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+    <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
       {/* ETA Badge */}
       {isDeliveryActive && (
-        <div className="absolute top-4 left-4 z-1000 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-xl px-4 py-3 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="absolute top-4 left-4 z-1000 bg-white/95 backdrop-blur-sm rounded-xl px-4 py-3 shadow-lg border border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
-              <span className="material-symbols-outlined text-white text-lg">schedule</span>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+              <Clock size={18} className="text-white" />
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Temps estimé</p>
-              <p className="text-lg font-black text-gray-900 dark:text-white leading-tight">
+              <p className="text-lg font-black text-gray-900 leading-tight">
                 ~{etaMinutes} min
               </p>
             </div>
@@ -216,20 +217,20 @@ const TrackingMap: React.FC<TrackingMapProps> = ({
       )}
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 z-1000 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg border border-gray-100 dark:border-gray-700">
+      <div className="absolute bottom-4 left-4 z-1000 bg-white/95 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg border border-gray-100">
         <div className="flex flex-col gap-1.5 text-xs font-semibold">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-primary"></span>
-            <span className="text-gray-600 dark:text-gray-400">Pharmacie</span>
+            <span className="text-gray-600">Pharmacie</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-            <span className="text-gray-600 dark:text-gray-400">Votre adresse</span>
+            <span className="text-gray-600">Votre adresse</span>
           </div>
           {isDeliveryActive && (
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-amber-500"></span>
-              <span className="text-gray-600 dark:text-gray-400">Livreur</span>
+              <span className="text-gray-600">Livreur</span>
             </div>
           )}
         </div>

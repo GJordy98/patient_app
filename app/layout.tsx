@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
-import { ThemeProvider } from "@/context/ThemeContext";
-import ThemeToggleFab from "@/components/layout/ThemeToggleFab";
+import ToastContainer from "@/components/ui/ToastContainer";
+import FCMInitializer from "@/components/ui/FCMInitializer";
 
-const outfit = Outfit({
+const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-outfit",
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "e-Dr Tim Pharmacy - Votre pharmacie en ligne",
-  description: "Commandez vos médicaments en ligne et récupérez-les en pharmacie",
+  title: "EdoctorPharma – Votre pharmacie en ligne",
+  description: "Recherchez et commandez vos médicaments, livrés directement chez vous.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -22,17 +28,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="scroll-smooth" suppressHydrationWarning>
-      <head>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
-      </head>
-      <body className={`${outfit.variable} antialiased font-display`} suppressHydrationWarning>
-        <ThemeProvider>
-          <CartProvider>
-            {children}
-            <ThemeToggleFab />
-          </CartProvider>
-        </ThemeProvider>
+    <html lang="fr" className="scroll-smooth">
+      <body
+        className={`${inter.variable} font-[var(--font-inter)] antialiased bg-white text-[#1E293B]`}
+        style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      >
+        <CartProvider>
+          {children}
+          <ToastContainer />
+          <FCMInitializer />
+        </CartProvider>
       </body>
     </html>
   );

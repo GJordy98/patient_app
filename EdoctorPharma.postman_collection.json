@@ -1,0 +1,3544 @@
+{
+  "info": {
+    "_postman_id": "6e1401d7-461f-4b80-812b-290e2e770ac7",
+    "name": "EdoctorPharma",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52227404",
+    "_collection_link": "https://go.postman.co/collection/45778292-6e1401d7-461f-4b80-812b-290e2e770ac7?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Manage Patient",
+      "item": [
+        {
+          "name": "Patient Information(order , wallet)",
+          "item": [
+            {
+              "name": "list order patient",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"provider_id\":\"MOMO\",\r\n  \"module_origin\":\"test payment\",\r\n  \"amount\": \"5.0\",\r\n  \"currency\": \"EUR\",\r\n  \"externalId\": \"674746198\",\r\n  \"payer\": {\r\n    \"partyIdType\": \"MSISDN\",\r\n    \"partyId\": \"+237674746198\"\r\n  },\r\n  \"payerMessage\": \"Pay for product a\",\r\n  \"reference\": \"payer note\"\r\n}"
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/patient/list_order_patient/?status=IN_PICKUP",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "patient",
+                    "list_order_patient",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "IN_PICKUP",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "list notification patient",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/patient/list_notification_patient/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "patient",
+                    "list_notification_patient",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get wallet patient",
+              "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "password",
+                      "value": "test1234",
+                      "type": "string"
+                    },
+                    {
+                      "key": "username",
+                      "value": "+237655362943",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}api/v1/wallet-patient/get_wallet_patient/",
+                  "host": [
+                    "{{baseUrl}}api"
+                  ],
+                  "path": [
+                    "v1",
+                    "wallet-patient",
+                    "get_wallet_patient",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "reception colis",
+          "item": [
+            {
+              "name": "get qrcode",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "daf7d306-e821-3e15-8c84-551f74f745b5",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://e-doctorpharma.onrender.com/api/v1/orders/{order_id}/qr-code/",
+                  "protocol": "http",
+                  "host": [
+                    "e-doctorpharma",
+                    "onrender",
+                    "com"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    "{order_id}",
+                    "qr-code",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "dispute orders",
+              "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "password",
+                      "value": "test1234",
+                      "type": "string"
+                    },
+                    {
+                      "key": "username",
+                      "value": "+237655362943",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "reason",
+                      "value": "colis endomagé",
+                      "type": "text",
+                      "uuid": "b66088ad-7954-4777-afb7-4e9392779d19"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "uuid": "e4297977-d10e-476d-8fd8-49f684c174f7",
+                      "src": "/C:/Users/DEVOPS/Downloads/Untitled diagram-2026-01-11-173747.png"
+                    },
+                    {
+                      "key": "order",
+                      "value": "43935857-5b99-422a-b3c3-4d68026e3198",
+                      "type": "text",
+                      "uuid": "5ce946bc-2a77-4a5f-9844-2da2c083e593"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "http://e-doctorpharma.onrender.com/api/v1/dispute-order/",
+                  "protocol": "http",
+                  "host": [
+                    "e-doctorpharma",
+                    "onrender",
+                    "com"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "dispute-order",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "create patient",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"telephone\":\"+237699516606\",\r\n    \"email\":\"joel@gmail.com\",\r\n    \"password\":\"test12345\",\r\n    \"last_name\":\"joel\",\r\n    \"first_name\":\"\",\r\n    \"role\":\"PATIENT\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/register/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "register",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get patient",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/patient/c6016141-86c0-446d-ac5e-f92fc202c15a/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient",
+                "c6016141-86c0-446d-ac5e-f92fc202c15a",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"telephone\":\"+237688775500\",\r\n    \"password\":\"test1234\"\r\n} ",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/login/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "login",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "register patient",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"telephone\":\"+237656362943\",\r\n    \"email\":\"user_test@gmail.com\",\r\n    \"password\":\"test1234\",\r\n    \"last_name\":\"steve\",\r\n    \"first_name\":\"Louis\",\r\n    \"role\":\"PATIENT\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/register/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "register",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "validate otp",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"otp\":\"410035\",\r\n    \"telephone\":\"+237655362943\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://172.19.144.1:8000/api/v1/valid-otp/",
+              "protocol": "http",
+              "host": [
+                "172",
+                "19",
+                "144",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "v1",
+                "valid-otp",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "resend otp",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"telephone\":\"+237655362943\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}api/v1/send-otp/",
+              "host": [
+                "{{baseUrl}}api"
+              ],
+              "path": [
+                "v1",
+                "send-otp",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "change fogot password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"password\":\"test7996\",\r\n    \"telephone\":\"+237656362943\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/change-fogot-password/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "change-fogot-password",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "list patient",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/patient/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update profile patient",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "last_name",
+                  "value": "Yann",
+                  "type": "text",
+                  "uuid": "1308a215-554f-429e-a7d1-e4541fd6547f"
+                },
+                {
+                  "key": "first_name",
+                  "value": "Kandem",
+                  "type": "text",
+                  "uuid": "31094266-782d-4f6f-b775-9d951b895075"
+                },
+                {
+                  "key": "birthdate",
+                  "value": "1982-12-25",
+                  "type": "text",
+                  "uuid": "e8aa17b6-c564-498b-975a-d0d1358ce807"
+                },
+                {
+                  "key": "sexe",
+                  "value": "Male",
+                  "type": "text",
+                  "uuid": "47772e32-2e6f-47ae-b468-2bfaaf90e1de"
+                },
+                {
+                  "key": "profession",
+                  "value": "Infirmier",
+                  "type": "text",
+                  "uuid": "f0996eef-34fd-4a04-aa7f-18168ee9c810"
+                },
+                {
+                  "key": "profile_image",
+                  "type": "file",
+                  "uuid": "d9a231c1-e677-4cd1-a2cf-f5af863fa98d",
+                  "src": "/C:/Users/DEVOPS/Pictures/test3.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/patient/c81a063e-75ba-481e-a34d-d3936f8eb10d/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "patient",
+                "c81a063e-75ba-481e-a34d-d3936f8eb10d",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create delivery",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "+237699887700",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "test1234",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "telephone",
+                  "value": "+23769909900",
+                  "type": "text",
+                  "uuid": "3a296227-c999-4924-95a1-123766e16c8c"
+                },
+                {
+                  "key": "email",
+                  "value": "livre00@gmail.com",
+                  "type": "text",
+                  "uuid": "10d49563-7782-4a4a-9421-7d4eb63014e9"
+                },
+                {
+                  "key": "last_name",
+                  "value": "Jean",
+                  "type": "text",
+                  "uuid": "976e47e4-4be4-491d-812c-df99a23163cf"
+                },
+                {
+                  "key": "first_name",
+                  "value": "TAMTAM",
+                  "type": "text",
+                  "uuid": "7e577d14-1f33-4ef7-a984-6b936cb046ca"
+                },
+                {
+                  "key": "cni_recto",
+                  "type": "file",
+                  "uuid": "e5979bbf-d5db-4ed4-b6a2-db9b845d5735",
+                  "src": "/C:/Users/DEVOPS/Pictures/capture_mir.png"
+                },
+                {
+                  "key": "cni_verso",
+                  "type": "file",
+                  "uuid": "f9e26a1e-528b-4891-b385-927bca2c3fba",
+                  "src": "/C:/Users/DEVOPS/Pictures/cybersouce paiement.png"
+                },
+                {
+                  "key": "birthdate",
+                  "value": "1968-02-23",
+                  "type": "text",
+                  "uuid": "ffc75729-cf8b-4d03-8e71-85005934752b"
+                },
+                {
+                  "key": "plan_geolocalisation",
+                  "type": "file",
+                  "uuid": "601b156c-ea14-4f36-a2b8-d9edf574eb2e",
+                  "src": "/C:/Users/DEVOPS/Pictures/cybersouce paiement.png"
+                },
+                {
+                  "key": "profile_image",
+                  "type": "file",
+                  "uuid": "cdc239d9-4b83-4e37-817c-f180844e4b87",
+                  "src": "/C:/Users/DEVOPS/Pictures/cybersource postman.png"
+                },
+                {
+                  "key": "city",
+                  "value": "Douala",
+                  "type": "text",
+                  "uuid": "4ff1b812-18d8-4379-a518-eed506f56fc6"
+                },
+                {
+                  "key": "rue",
+                  "value": "Cite des Palmiers rue 115",
+                  "type": "text",
+                  "uuid": "92f2b3ed-1a20-4caf-b5f1-eb4d663c6685"
+                },
+                {
+                  "key": "quater",
+                  "value": "Cite des Palmiers",
+                  "type": "text",
+                  "uuid": "cae57540-5c19-46ea-8807-6ffb21612a65"
+                },
+                {
+                  "key": "longitude",
+                  "value": "1.0025",
+                  "type": "text",
+                  "uuid": "e617e06b-7dc0-4a76-9600-cb0369c560d9"
+                },
+                {
+                  "key": "latitude",
+                  "value": "0.1235",
+                  "type": "text",
+                  "uuid": "112d037a-7f62-4cfc-8778-8eef1d7ca34f"
+                },
+                {
+                  "key": "password",
+                  "value": "test1234",
+                  "type": "text",
+                  "uuid": "c34b5f7e-9c01-4ae2-9620-eca8c0b9c823"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/delivery/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "v1",
+                "delivery",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add token for fcm",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"token\":\"tzdfbhisnv:lbjilqdfbgfsdb46457sf4135\",\r\n    \"device_type\":\"web\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://e-doctorpharma.onrender.com/api/v1/register-fcm-token/",
+              "protocol": "https",
+              "host": [
+                "e-doctorpharma",
+                "onrender",
+                "com"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "register-fcm-token",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "change password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"old_password\":\"test1234\",\r\n    \"new_password\":\"abcd1234\",\r\n    \"telephone\":\"+237655362943\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}api/v1/change-password/",
+              "host": [
+                "{{baseUrl}}api"
+              ],
+              "path": [
+                "v1",
+                "change-password",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Manage officine",
+      "item": [
+        {
+          "name": "Manage Lot",
+          "item": [
+            {
+              "name": "create lot",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"pharmacy\":\"a832f7cf-c0a2-44c9-92eb-b33671b778af\",\r\n    \"product\":\"7e239bad-3bff-48e7-8f8e-94289d078cdf\",\r\n    \"batch_number\":\"prd-2021-0df00-dfd0\",\r\n    \"expiration_date\":\"2026-01-23\",\r\n    \"unit\":\"14ebf739-23fc-446f-8c28-a1a0dcbed577\",\r\n    \"quantity\":60,\r\n    \"purchase_price\":15000\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://e-doctorpharma.onrender.com/api/v1/lots/",
+                  "protocol": "https",
+                  "host": [
+                    "e-doctorpharma",
+                    "onrender",
+                    "com"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "lots",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "create product unit convertion",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"product\":\"08bada39-9d30-4376-ab59-7ee6e9f58abb\",\r\n    \"from_unit\":\"\",\r\n    \"to_unit\":\"\",\r\n    \"multiplier\":\"\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/conversions/",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "conversions",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "create price of product",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"pharmacy\":\"a832f7cf-c0a2-44c9-92eb-b33671b778af\",\r\n    \"product\":\"7e239bad-3bff-48e7-8f8e-94289d078cdf\",\r\n    \"sale_price\":2500,\r\n    \"currency\":\"XAF\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://e-doctorpharma.onrender.com/api/v1/product-price/",
+                  "protocol": "https",
+                  "host": [
+                    "e-doctorpharma",
+                    "onrender",
+                    "com"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "product-price",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "mange officine pharmacie",
+          "item": [
+            {
+              "name": "get all officine",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0Njc0NjkyLCJpYXQiOjE3NjQ1ODgyOTIsImp0aSI6IjE4NjdlZmRiYTZlNzQyOTY4MzIxMWQ3NDllZWUzYTdhIiwidXNlcl9pZCI6Ijk3Yzc5ZTI4LWU0YWQtNDk5OS1hN2JiLTM0YTQyZDZkMzQ1NyJ9.62RlZ_UFrcjWfFmL3WlojlY_Q0af42J2Bp77fN0P91w",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/officine/",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "officine",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "lits product officine",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/officine/6f07ed46-2800-439f-ad4c-ac05fcb88976/list-product/",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "officine",
+                    "6f07ed46-2800-439f-ad4c-ac05fcb88976",
+                    "list-product",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "New Request",
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
+              "name": "get all products by officine_id",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/officine/list-all-product-officine/",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "officine",
+                    "list-all-product-officine",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "search product officine",
+              "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "username",
+                      "value": "+237680528421",
+                      "type": "string"
+                    },
+                    {
+                      "key": "password",
+                      "value": "test1234",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"pharmacy_id\":\"876a98d6-5621-4ce6-8c46-a07f9af2e378\",\r\n    \"product_ids\":[\"e0b2c81f-43c4-48a4-89a2-4ae30b65624c\"]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/search-produit-officine/",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "search-produit-officine",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "manage planing officine",
+          "item": [
+            {
+              "name": "create planing",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"schedules\":[\r\n        {\r\n            \"open_time\":\"08:00\",\r\n            \"close_time\":\"17:00\",\r\n            \"day\":\"MON\",\r\n            \"is_guard\":false\r\n        },\r\n         {\r\n            \"open_time\":\"08:00\",\r\n            \"close_time\":\"17:00\",\r\n            \"day\":\"TUE\",\r\n            \"is_guard\":false\r\n        },\r\n         {\r\n            \"open_time\":\"08:00\",\r\n            \"close_time\":\"17:00\",\r\n            \"day\":\"WED\",\r\n            \"is_guard\":true\r\n        },\r\n         {\r\n            \"open_time\":\"08:00\",\r\n            \"close_time\":\"17:00\",\r\n            \"day\":\"THU\",\r\n            \"is_guard\":false\r\n        },\r\n         {\r\n            \"open_time\":\"08:00\",\r\n            \"close_time\":\"17:00\",\r\n            \"day\":\"FRI\",\r\n            \"is_guard\":true\r\n        },\r\n         {\r\n            \"open_time\":\"08:00\",\r\n            \"close_time\":\"15:00\",\r\n            \"day\":\"SAT\",\r\n            \"is_guard\":false\r\n        },\r\n         {\r\n            \"open_time\":\"08:00\",\r\n            \"close_time\":\"15:00\",\r\n            \"day\":\"SUN\",\r\n            \"is_guard\":false\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/officine/a832f7cf-c0a2-44c9-92eb-b33671b778af/update-schedule/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "officine",
+                    "a832f7cf-c0a2-44c9-92eb-b33671b778af",
+                    "update-schedule",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get officine with planning",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/officine/a832f7cf-c0a2-44c9-92eb-b33671b778af/schedule/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "officine",
+                    "a832f7cf-c0a2-44c9-92eb-b33671b778af",
+                    "schedule",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "register officine",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"adresse\":{\r\n        \"city\":\"Douala\",\r\n        \"rue\":\"Feu rouge\",\r\n        \"quater\":\"quater\",\r\n        \"bp\":\"bp\",\r\n        \"longitude\":3.335616,\r\n        \"latitude\":1.0516518,\r\n        \"telephone\":\"+23769988552211\"\r\n    },\r\n    \"name\":\"Pharmacie de Jean Bernard\",\r\n    \"description\":\"test Pharmacie\",\r\n    \"telephone\":\"telephone\"\r\n\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/register-officine/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "register-officine",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "register officine with user or pharmacist",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"officine\":\"a832f7cf-c0a2-44c9-92eb-b33671b778af\",\r\n    \"telephone\":\"+237688775500\",\r\n    \"email\":\"pharmacist@gmail.com\",\r\n    \"last_name\":\"Jean\",\r\n    \"first_name\":\"Tamo\",\r\n    \"password\":\"test1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/register-officine-user/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "register-officine-user",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "kyc officine",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "officine",
+                  "value": "e651c3e3-3e70-48fa-bbff-8d7ef9781f80",
+                  "type": "text",
+                  "uuid": "4d00372f-92cb-4efe-b748-d167954ec9c6"
+                },
+                {
+                  "key": "kyc",
+                  "value": "914b35c3-922a-4138-893c-2e9f53db0792",
+                  "type": "text",
+                  "uuid": "97eacb0a-f54f-41cb-a30d-f0128459749f"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "4a373a80-6bd7-4137-8449-3bd150284f92",
+                  "src": "/C:/Users/DEVOPS/Pictures/test_23.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/kyc-file-officine/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kyc-file-officine",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add owners of officine",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "officine",
+                  "value": "e651c3e3-3e70-48fa-bbff-8d7ef9781f80",
+                  "type": "text",
+                  "uuid": "4d00372f-92cb-4efe-b748-d167954ec9c6"
+                },
+                {
+                  "key": "kyc",
+                  "value": "914b35c3-922a-4138-893c-2e9f53db0792",
+                  "type": "text",
+                  "uuid": "97eacb0a-f54f-41cb-a30d-f0128459749f"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "4a373a80-6bd7-4137-8449-3bd150284f92",
+                  "src": "/C:/Users/DEVOPS/Pictures/test_23.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/kyc-file-officine/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kyc-file-officine",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "http://127.0.0.1:8000/api/v1/register-officine/",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"adresse\":{\r\n        \"city\":\"Douala\",\r\n        \"rue\":\"Feu rouge\",\r\n        \"quater\":\"quater\",\r\n        \"bp\":\"bp\",\r\n        \"longitude\":1.335616,\r\n        \"latitude\":1.0516518,\r\n        \"telephone\":\"+23769988552211\"\r\n    },\r\n    \"name\":\"Pharmacie de Jean Bernard\",\r\n    \"description\":\"test Pharmacie\",\r\n    \"telephone\":\"+237699885522\"\r\n\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/register-officine/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "register-officine",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Manage Admin Api",
+      "item": [
+        {
+          "name": "Gestion User",
+          "item": [
+            {
+              "name": "get user",
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
+              "name": "delete user",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}api/v1/user/ea6b868a-2801-4390-8f44-680f8cc28459/",
+                  "host": [
+                    "{{baseUrl}}api"
+                  ],
+                  "path": [
+                    "v1",
+                    "user",
+                    "ea6b868a-2801-4390-8f44-680f8cc28459",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Kyc",
+          "item": [
+            {
+              "name": "create kyc",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/kyc-file/",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "kyc-file",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "create kyc",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"name\":\"NUI\",\r\n    \"description\":\"numéro unique d'identifiant\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/kyc-file/",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "kyc-file",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Manage Product",
+      "item": [
+        {
+          "name": "Categorie Products",
+          "item": [
+            {
+              "name": "get all categorie",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/categories/",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "categories",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Manage Unit",
+          "item": [
+            {
+              "name": "create all init",
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "get product",
+          "item": [
+            {
+              "name": "get all products",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/products/",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "products",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "create categorie",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\":\"Médicament\",\r\n    \"description\":\"tout produit chimique ou lié à la consomation\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/categories/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "recherche produit",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "https://e-doctorpharma.onrender.com/api/v1/search/products/?q=BENZYLPENICILLINE&latitude&longitude&distance",
+              "protocol": "https",
+              "host": [
+                "e-doctorpharma",
+                "onrender",
+                "com"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "search",
+                "products",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "BENZYLPENICILLINE"
+                },
+                {
+                  "key": "latitude",
+                  "value": null
+                },
+                {
+                  "key": "longitude",
+                  "value": null
+                },
+                {
+                  "key": "distance",
+                  "value": null
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "recherche avec multiple produit",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n   \"items\": [\r\n     {\"product_id\":\"08bada39-9d30-4376-ab59-7ee6e9f58abb\",\"qty\":2},\r\n     {\"product_id\":\"d6bceb20-319b-4f2e-a4c8-06427e033521\",\"qty\":1}\r\n   ],\r\n   \"lat\": 1.651,\r\n   \"lng\": 1.33,\r\n   \"max_distance_km\": 100\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pharmacies/availability/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pharmacies",
+                "availability",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "search officine by position",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/officines/nearby/?latitude=1.0325&longitude=1.8949846",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "officines",
+                "nearby",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "1.0325",
+                  "type": "text"
+                },
+                {
+                  "key": "longitude",
+                  "value": "1.8949846",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "result search product by officine",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "manage Order",
+      "item": [
+        {
+          "name": "manage cart product",
+          "item": [
+            {
+              "name": "add product cart",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"product\":\"e292b68a-78ad-4f5c-a84c-31a34627b3fd\",\r\n    \"quantity\":20,\r\n    \"pharmacy\":\"a832f7cf-c0a2-44c9-92eb-b33671b778af\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/patient-cart/add_item/",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "patient-cart",
+                    "add_item",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "valid order on checkout",
+              "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "password",
+                      "value": "test1234",
+                      "type": "string"
+                    },
+                    {
+                      "key": "username",
+                      "value": "+237655362943",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "prescription",
+                      "type": "file",
+                      "uuid": "508ade5c-0bc1-44a5-aaa4-458498730c26",
+                      "src": "/C:/Users/DEVOPS/Downloads/Design sans titre (1).pdf"
+                    },
+                    {
+                      "key": "cart_id",
+                      "value": "1d46bae3-3d42-4fd0-9555-14ce782d66b2",
+                      "type": "text",
+                      "uuid": "cd6223a0-9a2e-472e-9bb6-9676e64a230e"
+                    },
+                    {
+                      "key": "longitude",
+                      "value": "1.216516",
+                      "type": "text",
+                      "uuid": "636098cf-a929-4569-856f-8326403cb1ef"
+                    },
+                    {
+                      "key": "latitude",
+                      "value": "4.156895",
+                      "type": "text",
+                      "uuid": "3c38b816-3459-4c84-8e7f-1ca32b610a16"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/checkout/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "checkout",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get cart patiant",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}api/v1/patient-cart/get_cart/",
+                  "host": [
+                    "{{baseUrl}}api"
+                  ],
+                  "path": [
+                    "v1",
+                    "patient-cart",
+                    "get_cart",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "validated order_id",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"action\":\"approve\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/officine-order/5fbb2542-caff-403b-8e09-eab21fc0f333/validate/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "officine-order",
+                    "5fbb2542-caff-403b-8e09-eab21fc0f333",
+                    "validate",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "remove item on cart",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2MTMyMDc0LCJpYXQiOjE3NjYwNDU2NzQsImp0aSI6ImQ1ODc4NDFkNjFlODQxMGFiMDMwMDg1ZjM1NWRmMzBlIiwidXNlcl9pZCI6IjUzYjlhMmVmLTNiNjgtNDNmMi04YmMyLWNhZTg3OTc0NWM1ZiJ9.hhLDNtBtf8SYchlkf_hvwqdPIwn0FjmnqnmDHi595xQ",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"item_id\":\"de92a7c3-fdcb-4fbf-9bc5-57d98ef66953\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/patient-cart/remove_item/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "patient-cart",
+                    "remove_item",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "officne order",
+          "item": [
+            {
+              "name": "list order officine by officine",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2MjQzMTIyLCJpYXQiOjE3NjYxNTY3MjIsImp0aSI6IjgwMjVhMWMxMzBjNTQ4OGQ5ZjRiNDNjNzM4MGUzZTExIiwidXNlcl9pZCI6IjUzYjlhMmVmLTNiNjgtNDNmMi04YmMyLWNhZTg3OTc0NWM1ZiJ9.pY6qjLKpfKp5Imk6vRczpLkoBzYlkSGdgzAPo9_Im78",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}api/v1/officine/a832f7cf-c0a2-44c9-92eb-b33671b778af/list-officine-orders-pending/?status=PENDING",
+                  "host": [
+                    "{{baseUrl}}api"
+                  ],
+                  "path": [
+                    "v1",
+                    "officine",
+                    "a832f7cf-c0a2-44c9-92eb-b33671b778af",
+                    "list-officine-orders-pending",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "PENDING"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get order by officine",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseURL}}api/v1/officine-order/",
+                  "host": [
+                    "{{baseURL}}api"
+                  ],
+                  "path": [
+                    "v1",
+                    "officine-order",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get item of sub-order officine",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/officine-order/cfb96c60-9ace-4c7d-aa4d-4f102e527dec/items-order/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "officine-order",
+                    "cfb96c60-9ace-4c7d-aa4d-4f102e527dec",
+                    "items-order",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update items officine orders",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"status\":\"RESERVED\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/officine-order/f08d45fd-028c-44d6-93c3-7b6818382828/update-items-status/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "officine-order",
+                    "f08d45fd-028c-44d6-93c3-7b6818382828",
+                    "update-items-status",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "validate officine order by officine",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"status\":\"RESERVED\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/officine-order/ab8d7af9-8e67-4797-8bed-222143e43756/validate-officine-order/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "officine-order",
+                    "ab8d7af9-8e67-4797-8bed-222143e43756",
+                    "validate-officine-order",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "items of orders officine",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"action\":\"approve\"\r\n}"
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/officine-order/a7b6decb-46de-4de8-aa33-1c0c848b80cb/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "officine-order",
+                    "a7b6decb-46de-4de8-aa33-1c0c848b80cb",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "New Folder",
+          "item": [
+            {
+              "name": "New Request",
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "manage order by officine 2nd proces",
+          "item": [
+            {
+              "name": "send file or prescription at officine",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "prescription",
+                      "type": "file",
+                      "uuid": "8e6ad429-bf52-40ba-a621-ccf27d94282b",
+                      "src": "/C:/Users/DEVOPS/Pictures/Capture d’écran 2025-09-11 105235.png"
+                    },
+                    {
+                      "key": "medecin",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "11ffb638-2088-48b2-ada2-3b0c14cedcb3",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/send-presciption-order/6f07ed46-2800-439f-ad4c-ac05fcb88976/validate/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "send-presciption-order",
+                    "6f07ed46-2800-439f-ad4c-ac05fcb88976",
+                    "validate",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "generate the sub-order for patient by officine or validaded officine order by officine",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"officine_order\":\"db6722f5-a049-4d4c-9af9-f26aa41d6077\",\r\n    \"product\":[\r\n            {\r\n                \"product_id\":\"08bada39-9d30-4376-ab59-7ee6e9f58abb\",\r\n                \"quantity\":2\r\n        },\r\n        {\r\n            \"product_id\":\"1e22e225-3a97-4b4d-b210-b52d556fd3c2\",\r\n            \"quantity\":3\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/sub-order-item-officine/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "sub-order-item-officine",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "valide-order by patient",
+              "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "username",
+                      "value": "+237655362943",
+                      "type": "string"
+                    },
+                    {
+                      "key": "password",
+                      "value": "test1234",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"order_id\":\"cbd9b2a1-44aa-4d3c-af19-c9c3118c5ec3\",\r\n    \"status\":\"VALIDATED\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/validated-order-by-patient/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "validated-order-by-patient",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get invoice order patient",
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"order_id\":\"a2058eb3-f22f-4a75-b0f5-ef939afd52ba\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/get-invoice-order-patient/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "get-invoice-order-patient",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get pdf invoice user",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "oauth2",
+                  "oauth2": [
+                    {
+                      "key": "addTokenTo",
+                      "value": "header",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/get-invoice-order-patient/aba90596-7cf7-4e5e-be26-a980d2ef07e8/pdf/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "get-invoice-order-patient",
+                    "aba90596-7cf7-4e5e-be26-a980d2ef07e8",
+                    "pdf",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "admin folder",
+      "item": [
+        {
+          "name": "Mission Delivery",
+          "item": [
+            {
+              "name": "get mission",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "username",
+                      "value": "+237699887700",
+                      "type": "string"
+                    },
+                    {
+                      "key": "password",
+                      "value": "test1234",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "telephone",
+                      "value": "+23769909900",
+                      "type": "text",
+                      "uuid": "3a296227-c999-4924-95a1-123766e16c8c"
+                    },
+                    {
+                      "key": "email",
+                      "value": "livre00@gmail.com",
+                      "type": "text",
+                      "uuid": "10d49563-7782-4a4a-9421-7d4eb63014e9"
+                    },
+                    {
+                      "key": "last_name",
+                      "value": "Jean",
+                      "type": "text",
+                      "uuid": "976e47e4-4be4-491d-812c-df99a23163cf"
+                    },
+                    {
+                      "key": "first_name",
+                      "value": "TAMTAM",
+                      "type": "text",
+                      "uuid": "7e577d14-1f33-4ef7-a984-6b936cb046ca"
+                    },
+                    {
+                      "key": "cni_recto",
+                      "type": "file",
+                      "uuid": "e5979bbf-d5db-4ed4-b6a2-db9b845d5735",
+                      "src": "/C:/Users/DEVOPS/Pictures/capture_mir.png"
+                    },
+                    {
+                      "key": "cni_verso",
+                      "type": "file",
+                      "uuid": "f9e26a1e-528b-4891-b385-927bca2c3fba",
+                      "src": "/C:/Users/DEVOPS/Pictures/cybersouce paiement.png"
+                    },
+                    {
+                      "key": "birthdate",
+                      "value": "1968-02-23",
+                      "type": "text",
+                      "uuid": "ffc75729-cf8b-4d03-8e71-85005934752b"
+                    },
+                    {
+                      "key": "plan_geolocalisation",
+                      "type": "file",
+                      "uuid": "601b156c-ea14-4f36-a2b8-d9edf574eb2e",
+                      "src": "/C:/Users/DEVOPS/Pictures/cybersouce paiement.png"
+                    },
+                    {
+                      "key": "profile_image",
+                      "type": "file",
+                      "uuid": "cdc239d9-4b83-4e37-817c-f180844e4b87",
+                      "src": "/C:/Users/DEVOPS/Pictures/cybersource postman.png"
+                    },
+                    {
+                      "key": "city",
+                      "value": "Douala",
+                      "type": "text",
+                      "uuid": "4ff1b812-18d8-4379-a518-eed506f56fc6"
+                    },
+                    {
+                      "key": "rue",
+                      "value": "Cite des Palmiers rue 115",
+                      "type": "text",
+                      "uuid": "92f2b3ed-1a20-4caf-b5f1-eb4d663c6685"
+                    },
+                    {
+                      "key": "quater",
+                      "value": "Cite des Palmiers",
+                      "type": "text",
+                      "uuid": "cae57540-5c19-46ea-8807-6ffb21612a65"
+                    },
+                    {
+                      "key": "longitude",
+                      "value": "1.0025",
+                      "type": "text",
+                      "uuid": "e617e06b-7dc0-4a76-9600-cb0369c560d9"
+                    },
+                    {
+                      "key": "latitude",
+                      "value": "0.1235",
+                      "type": "text",
+                      "uuid": "112d037a-7f62-4cfc-8778-8eef1d7ca34f"
+                    },
+                    {
+                      "key": "password",
+                      "value": "test1234",
+                      "type": "text",
+                      "uuid": "c34b5f7e-9c01-4ae2-9620-eca8c0b9c823"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/api/v1/mission/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "api",
+                    "v1",
+                    "mission",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "New Folder",
+          "item": []
+        },
+        {
+          "name": "add wallert at old user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/add-wallet-to-last-user/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "v1",
+                "add-wallet-to-last-user",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add wallet of officine",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/add-wallet-to-last-officine/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "v1",
+                "add-wallet-to-last-officine",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create wallet",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "review driverDelivery",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "password",
+                  "value": "Test1234",
+                  "type": "string"
+                },
+                {
+                  "key": "username",
+                  "value": "+23699112233",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"action\":\"APPROVED\",\r\n    \"reason\":\"\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/delivery/review_driver/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "delivery",
+                "review_driver",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get all driver",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Manage delevery",
+      "item": [
+        {
+          "name": "update info delevery",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "birthdate",
+                  "value": "2009-12-23",
+                  "type": "text",
+                  "uuid": "8c111da0-f9ac-4bf7-bf8b-440d9860815d"
+                },
+                {
+                  "key": "plan_geolocalisation",
+                  "type": "file",
+                  "uuid": "3746812c-6865-400e-a776-ee1b07cd3357",
+                  "src": "/C:/Users/DEVOPS/Pictures/chinois_spiro.png"
+                },
+                {
+                  "key": "profile_image",
+                  "type": "file",
+                  "uuid": "2cac69a5-c2ff-4dd3-845a-81e63541bb87",
+                  "src": "/C:/Users/DEVOPS/Pictures/cybersource postman.png"
+                },
+                {
+                  "key": "name_sponsort",
+                  "value": "sponsort_test",
+                  "type": "text",
+                  "uuid": "2a77b5de-8469-460a-9215-aca52b25f3c3"
+                },
+                {
+                  "key": "last_name_sponsort",
+                  "value": "last_name_sponsort",
+                  "type": "text",
+                  "uuid": "02d137ec-d4d3-43cd-a3d7-c40f9c8c56dd"
+                },
+                {
+                  "key": "first_name_sponsort",
+                  "value": "first_name_sponsort",
+                  "type": "text",
+                  "uuid": "124ed544-cdb1-4eee-a013-fa856811324a"
+                },
+                {
+                  "key": "profession_sponsort",
+                  "value": "profession_sponsort",
+                  "type": "text",
+                  "uuid": "1752ed19-cd99-4261-afb8-11550c9d9e17"
+                },
+                {
+                  "key": "birthdate_sponsort",
+                  "value": "1972-02-21",
+                  "type": "text",
+                  "uuid": "d3a2747f-c53f-46d4-ad05-7e855afb2d66"
+                },
+                {
+                  "key": "profile_image_sponsort",
+                  "type": "file",
+                  "uuid": "89eeaf34-0ac8-4fd5-a524-114f91a937d9",
+                  "src": "/C:/Users/DEVOPS/Pictures/Capture d’écran 2025-09-30 130810.png"
+                },
+                {
+                  "key": "cni_recto_sponsort",
+                  "type": "file",
+                  "uuid": "0120c71a-2f45-4644-b884-7e19675119e9",
+                  "src": "/C:/Users/DEVOPS/Pictures/test1.png"
+                },
+                {
+                  "key": "cni_verso_sponsort",
+                  "type": "file",
+                  "uuid": "dab38a61-9b1b-41cf-b755-8828c352f8b8",
+                  "src": "/C:/Users/DEVOPS/Pictures/origi.png"
+                },
+                {
+                  "key": "city_sponsort",
+                  "value": "Douala",
+                  "type": "text",
+                  "uuid": "1892bf7d-7694-4240-a693-d92bbbe6496d"
+                },
+                {
+                  "key": "rue_sponsort",
+                  "value": "logbaba jardin",
+                  "type": "text",
+                  "uuid": "345b6018-00cc-42b1-abac-4c2ff6a6d762"
+                },
+                {
+                  "key": "quater_sponsort",
+                  "value": "Logbaba",
+                  "type": "text",
+                  "uuid": "2b842fd0-d4cf-48bc-8f7f-fbe68499db85"
+                },
+                {
+                  "key": "bp_sponsort",
+                  "value": "Dla 114",
+                  "type": "text",
+                  "uuid": "1baef698-d1c2-43d4-aa37-169f76028c9d"
+                },
+                {
+                  "key": "telephone_sponsort",
+                  "value": "+237655332200",
+                  "type": "text",
+                  "uuid": "3b1c6aae-cb5f-434c-b5d4-8ce709af4c52"
+                },
+                {
+                  "key": "rue",
+                  "value": "Lendi Entre damas",
+                  "type": "text",
+                  "uuid": "ea259ada-5b10-49a9-b45c-51fbf6692147"
+                },
+                {
+                  "key": "city",
+                  "value": "Douala",
+                  "type": "text",
+                  "uuid": "c4068c74-26d3-4600-94ce-4e2280c610a9"
+                },
+                {
+                  "key": "quater",
+                  "value": "Kotto",
+                  "type": "text",
+                  "uuid": "3b08d40d-3a1d-4b2c-80cf-00fde619aeeb"
+                },
+                {
+                  "key": "bp",
+                  "value": "Cmr 1140",
+                  "type": "text",
+                  "uuid": "85cdd71d-b228-403c-bb32-13a3707a0f59"
+                },
+                {
+                  "key": "last_name",
+                  "value": "last_name",
+                  "type": "text",
+                  "uuid": "1085f96a-a415-4aea-89fd-7e3b7031b169"
+                },
+                {
+                  "key": "first_name",
+                  "value": "first_name",
+                  "type": "text",
+                  "uuid": "361f26a3-4258-47bc-bd10-f8d9ea568bf8"
+                },
+                {
+                  "key": "plan_geolocalisation",
+                  "type": "file",
+                  "uuid": "0f78994a-5d31-49eb-8fce-64b629129a19",
+                  "src": "/C:/Users/DEVOPS/Pictures/cybersouce paiement.png"
+                },
+                {
+                  "key": "profile_image",
+                  "type": "file",
+                  "uuid": "0b47ecfa-72f1-445e-9ff5-4cb228b2c799",
+                  "src": "/C:/Users/DEVOPS/Pictures/Capture d’écran 2025-11-12 154637.png"
+                },
+                {
+                  "key": "cni_recto",
+                  "type": "file",
+                  "uuid": "403f52ea-6fdd-4f9a-bafe-03806eccfe12",
+                  "src": "/C:/Users/DEVOPS/Pictures/Mir Interface.png"
+                },
+                {
+                  "key": "cni_verso",
+                  "type": "file",
+                  "uuid": "2ca94668-0151-46fb-b5ac-b2222f5452fa",
+                  "src": "/C:/Users/DEVOPS/Pictures/Capture d’écran 2025-09-30 130810.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/delivery/92fbe945-91a6-4137-97c4-1069a0b52f0a/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "v1",
+                "delivery",
+                "92fbe945-91a6-4137-97c4-1069a0b52f0a",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "driver position",
+          "request": {
+            "auth": {
+              "type": "oauth2",
+              "oauth2": [
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"latitude\":1.027,\r\n    \"longitude\":0.2135\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/driver-localisation/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "v1",
+                "driver-localisation",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get delivery",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "get order-patient on mission",
+          "request": {
+            "auth": {
+              "type": "bearer"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}api/v1/mission/get_info_by_mission/?mission=kghbcljqdnuciblk,vojnsv",
+              "host": [
+                "{{baseUrl}}api"
+              ],
+              "path": [
+                "v1",
+                "mission",
+                "get_info_by_mission",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "mission",
+                  "value": "kghbcljqdnuciblk,vojnsv",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "accept pick-up",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "get pick-up",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "accept mission by driver",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3NzEyODIxLCJpYXQiOjE3Njc2MjY0MjEsImp0aSI6Ijc4NmRlNjhjYTk0OTRlNTc4ODhkODE1NzY3Zjc2ODBkIiwidXNlcl9pZCI6Ijg5MmFkMDM1LWRmZmUtNDM4Ni1hNDAxLTY2OWRmZjRhZGNjYSJ9.tWGsvcWSsWCoYyuwEtcn60IjaN5viqf8NR1wvBTES-8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "https://e-doctorpharma.onrender.com/api/v1/mission/0e809975-f15e-470e-b192-95bd3a1a070d/accept_mission_order/",
+              "protocol": "https",
+              "host": [
+                "e-doctorpharma",
+                "onrender",
+                "com"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mission",
+                "0e809975-f15e-470e-b192-95bd3a1a070d",
+                "accept_mission_order",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get all officine for pickup",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3NzEyODIxLCJpYXQiOjE3Njc2MjY0MjEsImp0aSI6Ijc4NmRlNjhjYTk0OTRlNTc4ODhkODE1NzY3Zjc2ODBkIiwidXNlcl9pZCI6Ijg5MmFkMDM1LWRmZmUtNDM4Ni1hNDAxLTY2OWRmZjRhZGNjYSJ9.tWGsvcWSsWCoYyuwEtcn60IjaN5viqf8NR1wvBTES-8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://e-doctorpharma.onrender.com/api/v1/pickup-qr-code/?mission=0e809975-f15e-470e-b192-95bd3a1a070d",
+              "protocol": "https",
+              "host": [
+                "e-doctorpharma",
+                "onrender",
+                "com"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pickup-qr-code",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "mission",
+                  "value": "0e809975-f15e-470e-b192-95bd3a1a070d",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SCANNER QR_code",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"pickup_id\":\"\",\r\n    \"officine_order_id\":\"\",\r\n    \"ts\":\"\",\r\n    \"driver\":\"\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}api/v1/scan-qrcode-pickup/",
+              "host": [
+                "{{baseUrl}}api"
+              ],
+              "path": [
+                "v1",
+                "scan-qrcode-pickup",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get mission assigned",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4NDg0MjM1LCJpYXQiOjE3NjgzOTc4MzUsImp0aSI6IjVjYTQ3NWI0NTQ5YzRmMzU4MWM3OGI5MTM1NTcxMGU2IiwidXNlcl9pZCI6ImIyODk5ZGM0LTQ3MmEtNGU3ZS1iNjNkLTFkMzg2MzY0Zjc4MCJ9.ix3xZfu_bcYz3g_YRn5surcqo3NzjfVbpDO1BzzFZWs",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://e-doctorpharma.onrender.com/api/v1/delivery/last_mission_assigned/",
+              "protocol": "http",
+              "host": [
+                "e-doctorpharma",
+                "onrender",
+                "com"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "delivery",
+                "last_mission_assigned",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "cancel Mission",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "+237699887700",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "test1234",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "telephone",
+                  "value": "+23769909900",
+                  "type": "text",
+                  "uuid": "3a296227-c999-4924-95a1-123766e16c8c"
+                },
+                {
+                  "key": "email",
+                  "value": "livre00@gmail.com",
+                  "type": "text",
+                  "uuid": "10d49563-7782-4a4a-9421-7d4eb63014e9"
+                },
+                {
+                  "key": "last_name",
+                  "value": "Jean",
+                  "type": "text",
+                  "uuid": "976e47e4-4be4-491d-812c-df99a23163cf"
+                },
+                {
+                  "key": "first_name",
+                  "value": "TAMTAM",
+                  "type": "text",
+                  "uuid": "7e577d14-1f33-4ef7-a984-6b936cb046ca"
+                },
+                {
+                  "key": "cni_recto",
+                  "type": "file",
+                  "uuid": "e5979bbf-d5db-4ed4-b6a2-db9b845d5735",
+                  "src": "/C:/Users/DEVOPS/Pictures/capture_mir.png"
+                },
+                {
+                  "key": "cni_verso",
+                  "type": "file",
+                  "uuid": "f9e26a1e-528b-4891-b385-927bca2c3fba",
+                  "src": "/C:/Users/DEVOPS/Pictures/cybersouce paiement.png"
+                },
+                {
+                  "key": "birthdate",
+                  "value": "1968-02-23",
+                  "type": "text",
+                  "uuid": "ffc75729-cf8b-4d03-8e71-85005934752b"
+                },
+                {
+                  "key": "plan_geolocalisation",
+                  "type": "file",
+                  "uuid": "601b156c-ea14-4f36-a2b8-d9edf574eb2e",
+                  "src": "/C:/Users/DEVOPS/Pictures/cybersouce paiement.png"
+                },
+                {
+                  "key": "profile_image",
+                  "type": "file",
+                  "uuid": "cdc239d9-4b83-4e37-817c-f180844e4b87",
+                  "src": "/C:/Users/DEVOPS/Pictures/cybersource postman.png"
+                },
+                {
+                  "key": "city",
+                  "value": "Douala",
+                  "type": "text",
+                  "uuid": "4ff1b812-18d8-4379-a518-eed506f56fc6"
+                },
+                {
+                  "key": "rue",
+                  "value": "Cite des Palmiers rue 115",
+                  "type": "text",
+                  "uuid": "92f2b3ed-1a20-4caf-b5f1-eb4d663c6685"
+                },
+                {
+                  "key": "quater",
+                  "value": "Cite des Palmiers",
+                  "type": "text",
+                  "uuid": "cae57540-5c19-46ea-8807-6ffb21612a65"
+                },
+                {
+                  "key": "longitude",
+                  "value": "1.0025",
+                  "type": "text",
+                  "uuid": "e617e06b-7dc0-4a76-9600-cb0369c560d9"
+                },
+                {
+                  "key": "latitude",
+                  "value": "0.1235",
+                  "type": "text",
+                  "uuid": "112d037a-7f62-4cfc-8778-8eef1d7ca34f"
+                },
+                {
+                  "key": "password",
+                  "value": "test1234",
+                  "type": "text",
+                  "uuid": "c34b5f7e-9c01-4ae2-9620-eca8c0b9c823"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/mission/0e809975-f15e-470e-b192-95bd3a1a070d/cancel_mission/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "v1",
+                "mission",
+                "0e809975-f15e-470e-b192-95bd3a1a070d",
+                "cancel_mission",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get info mission",
+          "request": {
+            "auth": {
+              "type": "bearer"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}api/v1/mission/get_info_by_mission/?mission=kghbcljqdnuciblk,vojnsv",
+              "host": [
+                "{{baseUrl}}api"
+              ],
+              "path": [
+                "v1",
+                "mission",
+                "get_info_by_mission",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "mission",
+                  "value": "kghbcljqdnuciblk,vojnsv"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "scan order reception",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"code\":\"\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://e-doctorpharma.onrender.com/api/v1/scan-qrcode-order//{order_id}/delivery",
+              "protocol": "http",
+              "host": [
+                "e-doctorpharma",
+                "onrender",
+                "com"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scan-qrcode-order",
+                "",
+                "{order_id}",
+                "delivery"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Rating",
+      "item": [
+        {
+          "name": "create rating",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "+237655362943",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "test1234",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"target_type\": \"OFFICINE\",\r\n  \"target_id\": \"713ecfbd-35aa-45d8-8797-053ed7ae281e\",\r\n  \"rating\": 4,\r\n  \"comment\": \"Pharmacie  courtois\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/v1/rating/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "v1",
+                "rating",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "list notification user",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "oauth2",
+          "oauth2": [
+            {
+              "key": "addTokenTo",
+              "value": "header",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/notification-user/list_notification_user/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "notification-user",
+            "list_notification_user",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseURL",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "https://e-doctorpharma.onrender.com/",
+      "value": "baseURL"
+    },
+    {
+      "key": "baseUrl",
+      "value": "https://e-doctorpharma.onrender.com/"
+    }
+  ]
+}

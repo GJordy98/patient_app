@@ -2,19 +2,12 @@
 
 import React, { useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  Pill, Check, KeyRound, CheckCircle, AlertCircle, Send,
+  Phone, ShieldCheck, Lock, Eye, EyeOff, Loader2,
+} from 'lucide-react';
 
-// URL de l'API (toujours l'URL réelle, pas de mock sur le flux auth critique)
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'https://e-doctorpharma.onrender.com/api/v1').replace(/\/$/, '');
-
-// ============================================================
-// Étape 1 — Numéro de téléphone → envoie le code OTP
-// Endpoint : POST /send-otp/
-// Payload  : { telephone }
-// ============================================================
-// Étape 2 — Saisie du nouveau mot de passe
-// Endpoint : POST /change-fogot-password/
-// Payload  : { telephone, password }
-// ============================================================
 
 type Step = 'phone' | 'reset';
 
@@ -24,17 +17,14 @@ const formatPhone = (countryCode: string, phone: string) =>
 const ForgotPasswordContent = () => {
   const router = useRouter();
 
-  // ── État global ──────────────────────────────────────────
   const [step, setStep] = useState<Step>('phone');
   const [countryCode, setCountryCode] = useState('+237');
 
-  // ── Étape 1 : envoi OTP ──────────────────────────────────
   const [phoneNumber, setPhoneNumber] = useState('');
   const [sendingOtp, setSendingOtp] = useState(false);
   const [phoneError, setPhoneError] = useState('');
-  const [otpSent, setOtpSent] = useState(false); // message de confirmation envoi
+  const [otpSent, setOtpSent] = useState(false);
 
-  // ── Étape 2 : OTP (6 boîtes) + nouveau mot de passe ─────────────────────────────────
   const OTP_LENGTH = 6;
   const [otpDigits, setOtpDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const otpCode = otpDigits.join('');
@@ -47,9 +37,8 @@ const ForgotPasswordContent = () => {
   const [resetError, setResetError] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
 
-  // Gestion saisie OTP boîte par boîte
   const handleOtpChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, '').slice(-1); // 1 seul chiffre
+    const digit = value.replace(/\D/g, '').slice(-1);
     const newDigits = [...otpDigits];
     newDigits[index] = digit;
     setOtpDigits(newDigits);
@@ -81,8 +70,6 @@ const ForgotPasswordContent = () => {
     otpRefs.current[nextEmpty]?.focus();
   };
 
-  // ── Étape 1 : appel réel /send-otp/ ─────────────────────
-  // Endpoint: POST /send-otp/
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setPhoneError('');
@@ -97,8 +84,6 @@ const ForgotPasswordContent = () => {
 
     try {
       setSendingOtp(true);
-
-      // Appel direct (pas de mock) — endpoint critique d'authentification
       const response = await fetch(`${API_BASE}/send-otp/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -106,9 +91,7 @@ const ForgotPasswordContent = () => {
       });
 
       const data = await response.json();
-      // ── Log complet de la réponse /send-otp/ ──────────────
       console.log('📱 /send-otp/ réponse complète:', JSON.stringify(data, null, 2));
-      console.log('🔑 Code OTP (si retourné):', data.otp ?? data.code ?? data.otp_code ?? data.token ?? '(non retourné par le backend)');
 
       if (!response.ok) {
         const msg = data.message || data.detail || data.error || `Erreur ${response.status}`;
@@ -116,10 +99,8 @@ const ForgotPasswordContent = () => {
         return;
       }
 
-      // Succès : stocker le téléphone et passer à l'étape 2
       localStorage.setItem('forgotPhone', fullPhone);
       setOtpSent(true);
-      // Petit délai pour que l'utilisateur voit le message de succès
       setTimeout(() => setStep('reset'), 800);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erreur réseau. Vérifiez votre connexion.";
@@ -129,9 +110,6 @@ const ForgotPasswordContent = () => {
     }
   };
 
-  // ── Étape 2 : appel réel /change-fogot-password/ ─────────
-  // Endpoint: POST /change-fogot-password/
-  // Payload : { telephone, password }
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetError('');
@@ -153,19 +131,15 @@ const ForgotPasswordContent = () => {
 
     try {
       setResetting(true);
-
-      // Appel direct (pas de mock) — endpoint critique d'authentification
       const response = await fetch(`${API_BASE}/change-fogot-password/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Payload exact : { telephone, password } — l'OTP est validé en interne par le backend
         body: JSON.stringify({ telephone: fullPhone, password: newPassword }),
       });
 
       const data = await response.json();
       console.log('✅ /change-fogot-password/ réponse:', data);
 
-      // Succès : le backend retourne { status: true } ou { success: true }
       if (response.ok || data.status === true || data.success === true) {
         localStorage.removeItem('forgotPhone');
         setResetSuccess(true);
@@ -173,7 +147,6 @@ const ForgotPasswordContent = () => {
         return;
       }
 
-      // Erreur retournée dans le body
       const msg = data.message || data.detail || data.error || `Erreur ${response.status}`;
       setResetError(msg);
     } catch (err: unknown) {
@@ -184,7 +157,6 @@ const ForgotPasswordContent = () => {
     }
   };
 
-  // ── Renvoyer l'OTP ───────────────────────────────────────
   const handleResendOtp = async () => {
     const fullPhone = localStorage.getItem('forgotPhone') || formatPhone(countryCode, phoneNumber);
     try {
@@ -199,7 +171,7 @@ const ForgotPasswordContent = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 font-display">
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4">
       <div className="max-w-md w-full">
 
         {/* ── Branding ── */}
@@ -208,7 +180,7 @@ const ForgotPasswordContent = () => {
             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 cursor-pointer"
             onClick={() => router.push('/')}
           >
-            <span className="material-symbols-outlined text-primary text-4xl!">local_pharmacy</span>
+            <Pill size={32} className="text-primary" />
           </div>
           <h1 className="text-3xl font-black text-primary mb-1">e-Dr TIM</h1>
           <p className="text-gray-500 font-medium">Réinitialisation du mot de passe</p>
@@ -219,9 +191,7 @@ const ForgotPasswordContent = () => {
           <div className="flex items-center gap-2">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all
               ${step === 'phone' ? 'bg-primary text-white shadow-md shadow-primary/30' : 'bg-primary/20 text-primary'}`}>
-              {step === 'reset' ? (
-                <span className="material-symbols-outlined text-base!">check</span>
-              ) : '1'}
+              {step === 'reset' ? <Check size={14} /> : '1'}
             </div>
             <span className={`text-sm font-semibold ${step === 'phone' ? 'text-primary' : 'text-gray-400'}`}>
               Téléphone
@@ -239,34 +209,30 @@ const ForgotPasswordContent = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+        <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
 
-          {/* ════════════════════════════════════════════════════
-              ÉTAPE 1 — Numéro de téléphone
-              Endpoint : POST /send-otp/
-              Payload  : { telephone }
-              ════════════════════════════════════════════════════ */}
+          {/* ── ÉTAPE 1 ── */}
           {step === 'phone' && (
             <form onSubmit={handleSendOtp} className="space-y-6">
               <div>
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/20 mb-4">
-                  <span className="material-symbols-outlined text-amber-500 text-2xl!">lock_reset</span>
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-amber-50 mb-4">
+                  <KeyRound size={22} className="text-amber-500" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Mot de passe oublié ?</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Mot de passe oublié ?</h2>
+                <p className="text-sm text-gray-500">
                   Entrez votre numéro de téléphone. Un code de vérification vous sera envoyé par SMS / WhatsApp.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
                   Numéro de téléphone
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={countryCode}
                     onChange={(e) => setCountryCode(e.target.value)}
-                    className="w-24 py-4 px-2 bg-gray-50 dark:bg-gray-700 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50 transition-all text-sm font-semibold text-gray-700 dark:text-gray-200"
+                    className="w-24 py-4 px-2 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50 transition-all text-sm font-semibold text-gray-700"
                   >
                     <option value="+237">🇨🇲 +237</option>
                     <option value="+33">🇫🇷 +33</option>
@@ -275,12 +241,12 @@ const ForgotPasswordContent = () => {
                     <option value="+221">🇸🇳 +221</option>
                   </select>
                   <div className="relative flex-1">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400">phone</span>
+                    <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type="tel"
                       value={phoneNumber}
                       onChange={(e) => { setPhoneNumber(e.target.value); setPhoneError(''); }}
-                      className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-700 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50 transition-all"
+                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50 transition-all"
                       placeholder="6xx xxx xxx"
                       required
                     />
@@ -288,18 +254,16 @@ const ForgotPasswordContent = () => {
                 </div>
               </div>
 
-              {/* Message de succès envoi OTP */}
               {otpSent && (
-                <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm bg-green-50 dark:bg-green-900/20 p-3 rounded-xl">
-                  <span className="material-symbols-outlined text-lg!">check_circle</span>
+                <div className="flex items-center gap-2 text-green-600 text-sm bg-green-50 p-3 rounded-xl">
+                  <CheckCircle size={16} />
                   <span>Code envoyé ! Redirection en cours…</span>
                 </div>
               )}
 
-              {/* Erreur */}
               {phoneError && (
-                <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-xl">
-                  <span className="material-symbols-outlined text-lg!">error</span>
+                <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl">
+                  <AlertCircle size={16} />
                   <span>{phoneError}</span>
                 </div>
               )}
@@ -309,14 +273,10 @@ const ForgotPasswordContent = () => {
                 disabled={sendingOtp || otpSent}
                 className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/30 hover:shadow-xl hover:translate-y-[-2px] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {sendingOtp ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-xl!">send</span>
-                    Envoyer le code de vérification
-                  </>
-                )}
+                {sendingOtp
+                  ? <Loader2 size={18} className="animate-spin" />
+                  : <><Send size={18} /> Envoyer le code de vérification</>
+                }
               </button>
 
               <div className="text-center">
@@ -327,32 +287,26 @@ const ForgotPasswordContent = () => {
             </form>
           )}
 
-          {/* ════════════════════════════════════════════════════
-              ÉTAPE 2 — Nouveau mot de passe
-              Endpoint : POST /change-fogot-password/
-              Payload  : { telephone, password }
-              ════════════════════════════════════════════════════ */}
+          {/* ── ÉTAPE 2 ── */}
           {step === 'reset' && !resetSuccess && (
             <form onSubmit={handleResetPassword} className="space-y-6">
               <div>
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/20 mb-4">
-                  <span className="material-symbols-outlined text-green-600 text-2xl!">verified_user</span>
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-green-50 mb-4">
+                  <ShieldCheck size={22} className="text-green-600" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                <h2 className="text-xl font-bold text-gray-900 mb-1">
                   Code OTP &amp; Nouveau mot de passe
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500">
                   Un code a été envoyé au{' '}
-                  <strong className="text-gray-700 dark:text-gray-200">
-                    {countryCode}{phoneNumber}
-                  </strong>.
+                  <strong className="text-gray-700">{countryCode}{phoneNumber}</strong>.
                   {' '}Saisissez-le ci-dessous avec votre nouveau mot de passe.
                 </p>
               </div>
 
-              {/* ── Code OTP : 6 boîtes individuelles ── */}
+              {/* OTP Boxes */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                <label className="block text-sm font-bold text-gray-700 mb-3">
                   Code OTP reçu par SMS / WhatsApp
                 </label>
                 <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
@@ -367,12 +321,8 @@ const ForgotPasswordContent = () => {
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
                       onFocus={(e) => e.target.select()}
-                      className={`w-12 h-14 text-center text-xl font-black rounded-2xl border-2 transition-all focus:outline-none bg-gray-50 dark:bg-gray-700
-                        ${
-                          digit
-                            ? 'border-primary bg-primary/5 text-primary dark:bg-primary/10'
-                            : 'border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white'
-                        }
+                      className={`w-12 h-14 text-center text-xl font-black rounded-2xl border-2 transition-all focus:outline-none bg-gray-50
+                        ${digit ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-800'}
                         focus:border-primary focus:ring-2 focus:ring-primary/20`}
                       style={{ caretColor: 'transparent' }}
                     />
@@ -385,18 +335,16 @@ const ForgotPasswordContent = () => {
                 )}
               </div>
 
-              {/* Nouveau mot de passe */}
+              {/* New password */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Nouveau mot de passe
-                </label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Nouveau mot de passe</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400">lock</span>
+                  <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type={showNewPwd ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => { setNewPassword(e.target.value); setResetError(''); }}
-                    className="w-full pl-12 pr-14 py-4 bg-gray-50 dark:bg-gray-700 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50 transition-all"
+                    className="w-full pl-12 pr-14 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50 transition-all"
                     placeholder="Minimum 6 caractères"
                     required
                     minLength={6}
@@ -404,43 +352,37 @@ const ForgotPasswordContent = () => {
                   <button
                     type="button"
                     onClick={() => setShowNewPwd(!showNewPwd)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    <span className="material-symbols-outlined text-xl!">
-                      {showNewPwd ? 'visibility_off' : 'visibility'}
-                    </span>
+                    {showNewPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
 
-              {/* Confirmation */}
+              {/* Confirm password */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                  Confirmer le mot de passe
-                </label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Confirmer le mot de passe</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400">lock_open</span>
+                  <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type={showConfirmPwd ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => { setConfirmPassword(e.target.value); setResetError(''); }}
-                    className="w-full pl-12 pr-14 py-4 bg-gray-50 dark:bg-gray-700 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50 transition-all"
+                    className="w-full pl-12 pr-14 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50 transition-all"
                     placeholder="Répétez le mot de passe"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPwd(!showConfirmPwd)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    <span className="material-symbols-outlined text-xl!">
-                      {showConfirmPwd ? 'visibility_off' : 'visibility'}
-                    </span>
+                    {showConfirmPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
 
-              {/* Indicateur de force */}
+              {/* Password strength */}
               {newPassword && (
                 <div className="space-y-1">
                   <div className="flex gap-1">
@@ -450,7 +392,7 @@ const ForgotPasswordContent = () => {
                         className={`flex-1 h-1.5 rounded-full transition-all ${
                           newPassword.length >= i * 2
                             ? newPassword.length >= 8 ? 'bg-green-500' : newPassword.length >= 6 ? 'bg-amber-400' : 'bg-red-400'
-                            : 'bg-gray-200 dark:bg-gray-600'
+                            : 'bg-gray-200'
                         }`}
                       />
                     ))}
@@ -461,10 +403,9 @@ const ForgotPasswordContent = () => {
                 </div>
               )}
 
-              {/* Erreur */}
               {resetError && (
-                <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-xl">
-                  <span className="material-symbols-outlined text-lg!">error</span>
+                <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl">
+                  <AlertCircle size={16} />
                   <span>{resetError}</span>
                 </div>
               )}
@@ -474,21 +415,17 @@ const ForgotPasswordContent = () => {
                 disabled={resetting}
                 className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/30 hover:shadow-xl hover:translate-y-[-2px] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {resetting ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-xl!">check_circle</span>
-                    Réinitialiser le mot de passe
-                  </>
-                )}
+                {resetting
+                  ? <Loader2 size={18} className="animate-spin" />
+                  : <><CheckCircle size={18} /> Réinitialiser le mot de passe</>
+                }
               </button>
 
               <div className="flex justify-between text-sm">
                 <button
                   type="button"
                   onClick={() => { setStep('phone'); setOtpSent(false); }}
-                  className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-semibold hover:underline"
+                  className="text-gray-500 hover:text-gray-700 font-semibold hover:underline"
                 >
                   ← Changer le numéro
                 </button>
@@ -503,18 +440,18 @@ const ForgotPasswordContent = () => {
             </form>
           )}
 
-          {/* ══ SUCCÈS ══ */}
+          {/* ── SUCCÈS ── */}
           {resetSuccess && (
             <div className="text-center py-6">
-              <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-4xl!">check_circle</span>
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle size={40} className="text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Mot de passe modifié !</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Mot de passe modifié !</h2>
+              <p className="text-gray-500 text-sm mb-6">
                 Votre mot de passe a été réinitialisé avec succès.<br />
                 Redirection vers la connexion…
               </p>
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              <Loader2 size={28} className="text-primary animate-spin mx-auto" />
             </div>
           )}
         </div>
@@ -530,8 +467,8 @@ const ForgotPasswordContent = () => {
 export default function ForgotPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <Loader2 size={36} className="text-primary animate-spin" />
       </div>
     }>
       <ForgotPasswordContent />

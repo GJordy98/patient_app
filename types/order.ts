@@ -13,7 +13,9 @@ export interface Order {
   prescription?: string | null;
   status: string;
   total_amount: string | number;
-  pharmacy?: string | null;
+  delivery_fee?: string | number;
+  payment_status?: string;
+  pharmacy?: string | Record<string, unknown> | null; // peut être un objet complet côté backend
   pharmacy_name?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -25,6 +27,8 @@ export interface Order {
   patient_longitude?: number;
   delivery_method?: string;
   delivery_id?: string;
+  pharmacy_id?: string;
+  invoice_status?: string;
 }
 export interface PaginatedResponse<T> {
   count: number;

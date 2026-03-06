@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { api } from '@/lib/api-client';
 import { Pharmacy } from '@/types/common';
+import { Upload, Building2, FileText, X, AlertCircle, CheckCircle, Send } from 'lucide-react';
 
 const PrescriptionUpload = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -14,7 +15,6 @@ const PrescriptionUpload = () => {
   const [note, setNote] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Pharmacy selection
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [selectedPharmacyId, setSelectedPharmacyId] = useState('');
   const [loadingPharmacies, setLoadingPharmacies] = useState(true);
@@ -82,15 +82,15 @@ const PrescriptionUpload = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-lg border border-gray-200 dark:border-gray-700 mt-8">
+    <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg border border-gray-200 mt-8">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-          <span className="material-symbols-outlined text-primary text-3xl">upload_file</span>
+        <div className="w-12 h-12 rounded-2xl bg-[#22C55E]/10 flex items-center justify-center shrink-0">
+          <Upload size={24} className="text-[#22C55E]" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Envoyer une ordonnance</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <h2 className="text-xl font-bold text-gray-900">Envoyer une ordonnance</h2>
+          <p className="text-sm text-gray-500">
             Choisissez une pharmacie et joignez votre ordonnance — nous vous rappelons rapidement.
           </p>
         </div>
@@ -98,22 +98,22 @@ const PrescriptionUpload = () => {
 
       {/* Pharmacy selector */}
       <div className="mb-5">
-        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-bold text-gray-700 mb-2">
           <span className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-primary text-[18px]">local_pharmacy</span>
+            <Building2 size={16} className="text-[#22C55E]" />
             Pharmacie destinataire <span className="text-red-500">*</span>
           </span>
         </label>
         {loadingPharmacies ? (
           <div className="flex items-center gap-2 text-sm text-gray-400 py-3">
-            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-[#22C55E] border-t-transparent rounded-full animate-spin" />
             Chargement des pharmacies…
           </div>
         ) : (
           <select
             value={selectedPharmacyId}
             onChange={(e) => { setSelectedPharmacyId(e.target.value); setError(''); }}
-            className="w-full py-3.5 px-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-sm font-medium text-gray-800 dark:text-gray-200 appearance-none"
+            className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-[#22C55E] transition-all text-sm font-medium text-gray-800 appearance-none"
           >
             <option value="">— Sélectionner une pharmacie —</option>
             {pharmacies.map((p) => (
@@ -127,21 +127,21 @@ const PrescriptionUpload = () => {
       </div>
 
       {/* File drop zone */}
-      <div className="relative bg-linear-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5 rounded-2xl border-2 border-dashed border-primary/50 hover:border-primary p-7 transition-all mb-5">
+      <div className="relative bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border-2 border-dashed border-[#22C55E]/50 hover:border-[#22C55E] p-7 transition-all mb-5">
         {!preview ? (
           <div className="flex flex-col items-center justify-center text-center">
-            <span className="material-symbols-outlined text-5xl text-primary mb-3">cloud_upload</span>
-            <h3 className="text-base font-bold text-primary mb-1">Déposez votre ordonnance ici</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">ou cliquez pour parcourir</p>
+            <Upload size={48} className="text-[#22C55E] mb-3" />
+            <h3 className="text-base font-bold text-[#22C55E] mb-1">Déposez votre ordonnance ici</h3>
+            <p className="text-sm text-gray-500 mb-1">ou cliquez pour parcourir</p>
             <p className="text-xs text-gray-400">PDF, JPG, PNG · Max 10 MB</p>
           </div>
         ) : (
           <div className="relative group">
-            <div className="max-h-56 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <div className="max-h-56 rounded-xl overflow-hidden border border-gray-200 bg-white">
               {file?.type === 'application/pdf' ? (
                 <div className="flex items-center justify-center py-10 gap-3">
-                  <span className="material-symbols-outlined text-red-500 text-4xl">picture_as_pdf</span>
-                  <span className="font-medium text-sm text-gray-700 dark:text-gray-200">{file.name}</span>
+                  <FileText size={36} className="text-red-500" />
+                  <span className="font-medium text-sm text-gray-700">{file.name}</span>
                 </div>
               ) : (
                 <Image
@@ -157,7 +157,7 @@ const PrescriptionUpload = () => {
               onClick={clearFile}
               className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
             >
-              <span className="material-symbols-outlined text-sm">close</span>
+              <X size={16} />
             </button>
           </div>
         )}
@@ -180,30 +180,30 @@ const PrescriptionUpload = () => {
 
       {/* Optional note */}
       <div className="mb-5">
-        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-bold text-gray-700 mb-2">
           Note pour la pharmacie <span className="text-gray-400 font-normal">(optionnel)</span>
         </label>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={2}
-          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-sm resize-none text-gray-800 dark:text-gray-200"
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/40 focus:border-[#22C55E] transition-all text-sm resize-none text-gray-800"
           placeholder="Ex : médicament urgent, préférence de contact WhatsApp…"
         />
       </div>
 
       {/* Error */}
       {error && (
-        <div className="mb-4 flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm">
-          <span className="material-symbols-outlined text-[18px]">error</span>
+        <div className="mb-4 flex items-center gap-2 p-3 bg-red-50 text-red-600 rounded-xl text-sm">
+          <AlertCircle size={18} />
           <span>{error}</span>
         </div>
       )}
 
       {/* Success */}
       {success && (
-        <div className="mb-4 flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-xl text-sm animate-fade-in-up">
-          <span className="material-symbols-outlined text-[18px]">check_circle</span>
+        <div className="mb-4 flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-xl text-sm animate-fade-in-up">
+          <CheckCircle size={18} />
           <span>Ordonnance envoyée avec succès ! La pharmacie vous contactera bientôt.</span>
         </div>
       )}
@@ -213,20 +213,20 @@ const PrescriptionUpload = () => {
         <button
           onClick={handleUpload}
           disabled={!file || uploading || !selectedPharmacyId}
-          className="w-full py-3.5 bg-primary text-white font-bold rounded-xl shadow-md shadow-primary/25 hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0"
+          className="w-full py-3.5 bg-[#22C55E] text-white font-bold rounded-xl shadow-md shadow-primary/25 hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0"
         >
           {uploading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
-            <span className="material-symbols-outlined">send</span>
+            <Send size={18} />
           )}
-          {uploading ? 'Envoi en cours…' : 'Envoyer l\'ordonnance à la pharmacie'}
+          {uploading ? 'Envoi en cours…' : "Envoyer l'ordonnance à la pharmacie"}
         </button>
 
         {file && (
           <button
             onClick={clearFile}
-            className="w-full py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-semibold text-sm"
+            className="w-full py-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-all font-semibold text-sm"
           >
             Annuler
           </button>

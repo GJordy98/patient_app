@@ -1,47 +1,30 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getMessaging, type Messaging } from 'firebase/messaging';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAr8rU1Bqwx_ZczoMWuRkWGvGxN3jTlg38",
-  authDomain: "e-dr-tim-pharmacy.firebaseapp.com",
-  projectId: "e-dr-tim-pharmacy",
-  storageBucket: "e-dr-tim-pharmacy.firebasestorage.app",
-  messagingSenderId: "412254956944",
-  appId: "1:412254956944:web:60d385128056eb8b3cd715",
-  measurementId: "G-KWSQ9YZDEN"
+    apiKey: 'AIzaSyDttvXdza5YXxz84r-5BIfcvy7Xhbvmb-Y',
+    authDomain: 'e-dr-pharma-fcm.firebaseapp.com',
+    projectId: 'e-dr-pharma-fcm',
+    storageBucket: 'e-dr-pharma-fcm.firebasestorage.app',
+    messagingSenderId: '42167148530',
+    appId: '1:42167148530:web:e9fa630f803fa0469c156b',
 };
 
-const VAPID_KEY = 'BPebo7QTfaYUjEmfnz1cMbl07r3aGYXhU4gKWDyNaATgDXScIo4-kTD0HD8ejKqZNfcfGOIXsDSngm4U9Xch2zs';
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+let messaging: Messaging | null = null;
 
-export const requestForToken = async () => {
-  try {
-    const messaging = getMessaging(app);
-    const currentToken = await getToken(messaging, { 
-      vapidKey: VAPID_KEY 
-    });
-    if (currentToken) {
-      console.log('Current token for client: ', currentToken);
-      return currentToken;
-    } else {
-      console.log('No registration token available. Request permission to generate one.');
-      return null;
+export function getFirebaseMessaging(): Messaging | null {
+    if (typeof window === 'undefined') return null;
+    if (!messaging) {
+        try {
+            messaging = getMessaging(app);
+        } catch (err) {
+            console.error('[Firebase] Erreur initialisation Messaging:', err);
+            return null;
+        }
     }
-  } catch (err) {
-    console.log('An error occurred while retrieving token. ', err);
-    return null;
-  }
-};
-
-export const onMessageListener = () =>
-  new Promise((resolve) => {
-    const messaging = getMessaging(app);
-    onMessage(messaging, (payload) => {
-      console.log("Payload received: ", payload);
-      resolve(payload);
-    });
-  });
+    return messaging;
+}
 
 export { app };

@@ -1,297 +1,290 @@
-/* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import React, { useState, useMemo } from 'react';
-import { api } from '@/lib/api-client';
+import React, { useState, useMemo } from "react";
+import Link from "next/link";
+import { Eye, EyeOff, Phone, Lock, User, Mail, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { api } from "@/lib/api-client";
 
-const RegisterPage = () => {
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    telephone: '',
-    password: '',
-    confirm_password: '',
-    email: ''
+const COUNTRY_CODES = [
+  { code: "+237", flag: "🇨🇲", label: "CM" },
+  { code: "+33",  flag: "🇫🇷", label: "FR" },
+  { code: "+1",   flag: "🇺🇸", label: "US" },
+  { code: "+225", flag: "🇨🇮", label: "CI" },
+  { code: "+221", flag: "🇸🇳", label: "SN" },
+  { code: "+212", flag: "🇲🇦", label: "MA" },
+];
+
+export default function RegisterPage() {
+  const [countryCode, setCountryCode] = useState("+237");
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    telephone: "",
+    email: "",
+    password: "",
+    confirm_password: "",
   });
-  const [countryCode, setCountryCode] = useState('+237');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Password strength rules
-  const passwordRules = useMemo(() => {
-    const pw = formData.password;
-    return [
-      { label: 'Au moins 8 caractères', met: pw.length >= 8 },
-      { label: 'Au moins une majuscule', met: /[A-Z]/.test(pw) },
-      { label: 'Au moins un chiffre', met: /[0-9]/.test(pw) },
-      { label: 'Au moins un caractère spécial (!@#$...)', met: /[^A-Za-z0-9]/.test(pw) },
-    ];
-  }, [formData.password]);
+  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
-  const rulesMet = passwordRules.filter(r => r.met).length;
+  const passwordRules = useMemo(() => [
+    { label: "8 caractères minimum",      met: form.password.length >= 8 },
+    { label: "Une majuscule",              met: /[A-Z]/.test(form.password) },
+    { label: "Un chiffre",                 met: /[0-9]/.test(form.password) },
+    { label: "Un caractère spécial",       met: /[^A-Za-z0-9]/.test(form.password) },
+  ], [form.password]);
 
-  const strengthPercent = (rulesMet / passwordRules.length) * 100;
-  const strengthColor =
-    rulesMet <= 1 ? 'bg-red-500' :
-    rulesMet === 2 ? 'bg-orange-500' :
-    rulesMet === 3 ? 'bg-yellow-500' :
-    'bg-green-500';
-  const strengthLabel =
-    rulesMet <= 1 ? 'Faible' :
-    rulesMet === 2 ? 'Moyen' :
-    rulesMet === 3 ? 'Bon' :
-    'Excellent';
+  const strengthScore = passwordRules.filter((r) => r.met).length;
+  const strengthColor = ["bg-red-400", "bg-orange-400", "bg-yellow-400", "bg-[#22C55E]"][strengthScore - 1] ?? "bg-[#E2E8F0]";
+  const strengthLabel = ["Faible", "Moyen", "Bon", "Excellent"][strengthScore - 1] ?? "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.password !== formData.confirm_password) {
-      alert('Les mots de passe ne correspondent pas');
+    setError("");
+
+    if (form.password !== form.confirm_password) {
+      setError("Les mots de passe ne correspondent pas.");
       return;
     }
-    if (rulesMet < 4) {
-      alert('Votre mot de passe ne remplit pas tous les critères de sécurité');
-      return;
-    }
-    if (!acceptTerms) {
-      alert('Veuillez accepter les conditions générales d\'utilisation');
+    if (strengthScore < 4) {
+      setError("Votre mot de passe ne respecte pas tous les critères de sécurité.");
       return;
     }
 
     try {
       setLoading(true);
-      const fullPhone = `${countryCode}${formData.telephone.replace(/^0+/, '')}`;
-
-      // Envoyer uniquement les champs requis par le backend (role géré côté serveur)
+      const fullPhone = `${countryCode}${form.telephone.replace(/^0+/, "")}`;
+      localStorage.setItem("otpPhone", fullPhone);
       await api.register({
-        first_name: formData.first_name,
-        last_name: formData.last_name,
+        first_name: form.first_name,
+        last_name: form.last_name,
         telephone: fullPhone,
-        email: formData.email,
-        password: formData.password,
+        email: form.email,
+        password: form.password,
+        role: "PATIENT",
       });
-      // Redirect to OTP verification after successful registration
-      window.location.href = '/otp-verification';
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création du compte';
-      alert(errorMessage);
+      window.location.href = "/otp-verification";
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erreur lors de la création du compte.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 py-12 font-display">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-        {/* Branding */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
-            <span className="material-symbols-outlined text-primary text-4xl!">local_pharmacy</span>
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-lg">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#22C55E] mb-4 shadow-lg shadow-green-200">
+            <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
+              <path d="M18 4v28M4 18h28" stroke="white" strokeWidth="4" strokeLinecap="round" />
+            </svg>
           </div>
-          <h1 className="text-3xl font-black text-primary mb-2">Inscription</h1>
-          <p className="text-gray-500 font-medium">Rejoignez e-Dr TIM aujourd'hui</p>
+          <h1 className="text-[28px] font-bold text-[#1E293B]">Créer votre compte</h1>
+          <p className="text-[14px] text-[#94A3B8] mt-2">Rejoignez EdoctorPharma</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* First + Last name */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Prénom</label>
-              <input
-                type="text"
-                value={formData.first_name}
-                onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl focus:ring-2 focus:ring-primary/50 transition-all"
-                required
-              />
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-8">
+          {error && (
+            <div className="mb-5 flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-[13px] px-4 py-3 rounded-xl">
+              <span className="shrink-0">⚠</span>
+              <span>{error}</span>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Nom</label>
-              <input
-                type="text"
-                value={formData.last_name}
-                onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl focus:ring-2 focus:ring-primary/50 transition-all"
-                required
-              />
-            </div>
-          </div>
+          )}
 
-          {/* Phone with country code */}
-          <div>
-            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Téléphone</label>
-            <div className="flex gap-2">
-              <select
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                className="w-24 py-3 px-2 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl focus:ring-2 focus:ring-primary/50 transition-all text-sm font-semibold text-gray-700 dark:text-gray-200"
-              >
-                <option value="+237">🇨🇲 +237</option>
-                <option value="+33">🇫🇷 +33</option>
-                <option value="+1">🇺🇸 +1</option>
-                <option value="+225">🇨🇮 +225</option>
-                <option value="+221">🇸🇳 +221</option>
-              </select>
-              <div className="relative flex-1">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400">phone</span>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Nom + Prénom */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[14px] font-medium text-[#1E293B] mb-2">Prénom</label>
+                <div className="relative">
+                  <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                  <input
+                    type="text"
+                    value={form.first_name}
+                    onChange={set("first_name")}
+                    placeholder="Jean"
+                    required
+                    className="w-full pl-9 pr-4 py-3 border border-[#E2E8F0] rounded-lg text-[14px] text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 transition-all"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[14px] font-medium text-[#1E293B] mb-2">Nom</label>
+                <div className="relative">
+                  <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                  <input
+                    type="text"
+                    value={form.last_name}
+                    onChange={set("last_name")}
+                    placeholder="Dupont"
+                    required
+                    className="w-full pl-9 pr-4 py-3 border border-[#E2E8F0] rounded-lg text-[14px] text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Téléphone */}
+            <div>
+              <label className="block text-[14px] font-medium text-[#1E293B] mb-2">Téléphone</label>
+              <div className="flex gap-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="w-[90px] px-2 py-3 border border-[#E2E8F0] rounded-lg text-[13px] font-medium text-[#1E293B] focus:outline-none focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 transition-all"
+                >
+                  {COUNTRY_CODES.map(({ code, flag, label }) => (
+                    <option key={code} value={code}>{flag} {label}</option>
+                  ))}
+                </select>
+                <div className="relative flex-1">
+                  <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                  <input
+                    type="tel"
+                    value={form.telephone}
+                    onChange={set("telephone")}
+                    placeholder="6 12 34 56 78"
+                    required
+                    className="w-full pl-9 pr-4 py-3 border border-[#E2E8F0] rounded-lg text-[14px] text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-[14px] font-medium text-[#1E293B] mb-2">Adresse e-mail</label>
+              <div className="relative">
+                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
                 <input
-                  type="tel"
-                  value={formData.telephone}
-                  onChange={(e) => setFormData({...formData, telephone: e.target.value})}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl focus:ring-2 focus:ring-primary/50 transition-all"
-                  placeholder="6xx xxx xxx"
+                  type="email"
+                  value={form.email}
+                  onChange={set("email")}
+                  placeholder="jean.dupont@email.com"
                   required
+                  className="w-full pl-9 pr-4 py-3 border border-[#E2E8F0] rounded-lg text-[14px] text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 transition-all"
                 />
               </div>
             </div>
-          </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Email</label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400">mail</span>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl focus:ring-2 focus:ring-primary/50 transition-all"
-                placeholder="votre@email.com"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Password with show/hide */}
-          <div>
-            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Mot de passe</label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400">lock</span>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="w-full pl-12 pr-14 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl focus:ring-2 focus:ring-primary/50 transition-all"
-                placeholder="••••••••"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                <span className="material-symbols-outlined text-xl!">
-                  {showPassword ? 'visibility_off' : 'visibility'}
-                </span>
-              </button>
-            </div>
-
-            {/* Password Strength Meter */}
-            {formData.password.length > 0 && (
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${strengthColor}`}
-                      style={{ width: `${strengthPercent}%` }}
-                    />
-                  </div>
-                  <span className={`text-xs font-bold ${
-                    rulesMet <= 1 ? 'text-red-500' :
-                    rulesMet === 2 ? 'text-orange-500' :
-                    rulesMet === 3 ? 'text-yellow-600' :
-                    'text-green-600'
-                  }`}>
-                    {strengthLabel}
-                  </span>
-                </div>
-
-                {/* Rules Checklist */}
-                <div className="space-y-1">
-                  {passwordRules.map((rule, idx) => (
-                    <div key={idx} className={`flex items-center gap-2 text-xs transition-colors ${rule.met ? 'text-green-600' : 'text-gray-400'}`}>
-                      <span className="material-symbols-outlined text-sm!">
-                        {rule.met ? 'check_circle' : 'radio_button_unchecked'}
-                      </span>
-                      <span>{rule.label}</span>
-                    </div>
-                  ))}
-                </div>
+            {/* Mot de passe */}
+            <div>
+              <label className="block text-[14px] font-medium text-[#1E293B] mb-2">Mot de passe</label>
+              <div className="relative">
+                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={set("password")}
+                  placeholder="••••••••"
+                  required
+                  className="w-full pl-9 pr-10 py-3 border border-[#E2E8F0] rounded-lg text-[14px] text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#1E293B] transition-colors"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
-            )}
-          </div>
 
-          {/* Confirm Password with show/hide */}
-          <div>
-            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Confirmer le mot de passe</label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400">lock</span>
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={formData.confirm_password}
-                onChange={(e) => setFormData({...formData, confirm_password: e.target.value})}
-                className="w-full pl-12 pr-14 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl focus:ring-2 focus:ring-primary/50 transition-all"
-                placeholder="••••••••"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                <span className="material-symbols-outlined text-xl!">
-                  {showConfirmPassword ? 'visibility_off' : 'visibility'}
-                </span>
-              </button>
+              {/* Password strength */}
+              {form.password && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-1 flex-1">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className={`h-1.5 flex-1 rounded-full transition-all ${i <= strengthScore ? strengthColor : "bg-[#E2E8F0]"}`}
+                        />
+                      ))}
+                    </div>
+                    {strengthLabel && (
+                      <span className="ml-3 text-[12px] font-medium text-[#94A3B8]">{strengthLabel}</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-1">
+                    {passwordRules.map((rule) => (
+                      <div key={rule.label} className="flex items-center gap-1.5">
+                        {rule.met ? (
+                          <CheckCircle size={12} className="text-[#22C55E] shrink-0" />
+                        ) : (
+                          <XCircle size={12} className="text-[#E2E8F0] shrink-0" />
+                        )}
+                        <span className={`text-[11px] ${rule.met ? "text-[#22C55E]" : "text-[#94A3B8]"}`}>
+                          {rule.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            {formData.confirm_password.length > 0 && formData.password !== formData.confirm_password && (
-              <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm!">error</span>
-                Les mots de passe ne correspondent pas
-              </p>
-            )}
-          </div>
 
-          {/* Terms & Conditions */}
-          <div className="flex items-start gap-3 pt-2">
-            <input
-              type="checkbox"
-              id="acceptTerms"
-              checked={acceptTerms}
-              onChange={(e) => setAcceptTerms(e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/50 cursor-pointer"
-            />
-            <label htmlFor="acceptTerms" className="text-xs text-gray-600 dark:text-gray-400 cursor-pointer leading-relaxed">
-              J'accepte les{' '}
-              <a href="/faq" className="text-primary font-semibold hover:underline">
-                conditions générales d'utilisation
-              </a>{' '}
-              et la{' '}
-              <a href="/faq" className="text-primary font-semibold hover:underline">
-                politique de confidentialité
-              </a>
-            </label>
-          </div>
+            {/* Confirmer mot de passe */}
+            <div>
+              <label className="block text-[14px] font-medium text-[#1E293B] mb-2">Confirmer le mot de passe</label>
+              <div className="relative">
+                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  value={form.confirm_password}
+                  onChange={set("confirm_password")}
+                  placeholder="••••••••"
+                  required
+                  className={`w-full pl-9 pr-10 py-3 border rounded-lg text-[14px] text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 transition-all ${
+                    form.confirm_password && form.confirm_password !== form.password
+                      ? "border-[#EF4444] focus:border-[#EF4444] focus:ring-[#EF4444]/20"
+                      : "border-[#E2E8F0] focus:border-[#22C55E] focus:ring-[#22C55E]/20"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#1E293B] transition-colors"
+                >
+                  {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {form.confirm_password && form.confirm_password !== form.password && (
+                <p className="mt-1 text-[12px] text-[#EF4444]">Les mots de passe ne correspondent pas.</p>
+              )}
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading || !acceptTerms}
-            className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/30 hover:shadow-xl hover:translate-y-[-2px] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none mt-4"
-          >
-            {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "S'inscrire"}
-          </button>
-        </form>
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-[#22C55E] hover:bg-[#16A34A] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Création en cours…</span>
+                </>
+              ) : (
+                "Créer mon compte"
+              )}
+            </button>
+          </form>
 
-        <div className="mt-8 text-center pt-8 border-t border-gray-100 dark:border-gray-700">
-          <p className="text-gray-600 dark:text-gray-400">
-            Déjà un compte ?{' '}
-            <a href="/login" className="text-primary font-bold hover:underline">Se connecter</a>
+          <p className="text-center mt-6 text-[13px] text-[#94A3B8]">
+            Déjà inscrit ?{" "}
+            <Link href="/login" className="text-[#22C55E] hover:text-[#16A34A] font-medium">
+              Se connecter
+            </Link>
           </p>
         </div>
       </div>
     </div>
   );
-};
-
-export default RegisterPage;
+}

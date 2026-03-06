@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  client-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pharmacie-client
+    ports:
+      - "3000:3000"
+    # Lit automatiquement .env.local pour les variables d'environnement
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped

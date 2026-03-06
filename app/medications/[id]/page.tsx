@@ -7,24 +7,13 @@ import { api } from '@/lib/api-client';
 import { Pharmacy } from '@/types/common';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-
-// Mock medication data for demo
-const MOCK_MEDICATION = {
-  id: 'doliprane-1000',
-  name: 'Doliprane 1000mg',
-  subtitle: '8 comprimés, Paracétamol',
-  category: 'Antalgique',
-  price: 1075,
-  description: "Ce médicament est un antalgique (il calme la douleur) et un antipyrétique (il fait baisser la fièvre). Il est indiqué en cas de douleur et/ou fièvre telles que maux de tête, états grippaux, douleurs dentaires, courbatures, règles douloureuses.",
-  dosage: "Cette présentation est réservée à l'adulte et à l'enfant à partir de 50 kg (environ 15 ans). La posologie usuelle est de 1 comprimé à 1000 mg par prise, à renouveler au bout de 6 à 8 heures. En cas de besoin, la prise peut être renouvelée au bout de 4 heures minimum.",
-  image: ''
-};
+import { CheckCircle, ArrowLeft, Pill, ShoppingCart, Heart, HeartOff } from 'lucide-react';
 
 export default function MedicationDetailsPage() {
   const params = useParams();
   const { addItem } = useCart();
 
-  const [medication] = useState(MOCK_MEDICATION);
+  const [medication, setMedication] = useState<{ id: string; name: string; subtitle?: string; category?: string; price: number; description?: string; dosage?: string; image?: string } | null>(null);
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [selectedPharmacy, setSelectedPharmacy] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -32,19 +21,37 @@ export default function MedicationDetailsPage() {
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    const loadPharmacies = async () => {
+    const id = params.id as string;
+    const load = async () => {
+      // Chercher le produit par son id/slug
+      try {
+        const { results } = await api.searchProducts(id);
+        if (results.length > 0) {
+          const first = results[0];
+          const p = first.product;
+          setMedication({
+            id: String(p?.id ?? id),
+            name: p?.name ?? id,
+            subtitle: p?.galenic,
+            category: p?.category,
+            price: first.sale_price || first.price || 0,
+            image: p?.image,
+          });
+        }
+      } catch {
+        // produit non trouvé — on reste null
+      }
+      // Charger les pharmacies associées
       try {
         const data = await api.getAllPharmacies();
         const results = Array.isArray(data) ? data : data.results || [];
         setPharmacies(results.slice(0, 5));
-        if (results.length > 0) {
-          setSelectedPharmacy(results[0].id);
-        }
+        if (results.length > 0) setSelectedPharmacy(results[0].id);
       } catch {
         setPharmacies([]);
       }
     };
-    loadPharmacies();
+    load();
   }, [params.id]);
 
   const showToast = (msg: string) => {
@@ -53,6 +60,7 @@ export default function MedicationDetailsPage() {
   };
 
   const handleAddToCart = async () => {
+    if (!medication) return;
     setAdding(true);
     try {
       addItem(medication.id, selectedPharmacy || 'default', 1, {
@@ -62,7 +70,7 @@ export default function MedicationDetailsPage() {
       });
       showToast('Produit ajouté au panier');
     } catch {
-      showToast('Erreur lors de l\'ajout');
+      showToast("Erreur lors de l'ajout");
     } finally {
       setTimeout(() => setAdding(false), 1500);
     }
@@ -70,7 +78,7 @@ export default function MedicationDetailsPage() {
 
   const handleFavorite = () => {
     setIsFavorite(!isFavorite);
-    showToast(isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris ❤️');
+    showToast(isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris');
   };
 
   return (
@@ -80,7 +88,7 @@ export default function MedicationDetailsPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed top-4 right-4 z-50 bg-white shadow-lg rounded-lg p-4 flex items-center gap-3 animate-slide-down border border-gray-100">
-          <span className="material-symbols-outlined text-primary">check_circle</span>
+          <CheckCircle size={20} className="text-primary" />
           <span className="text-sm font-medium text-gray-900">{toast}</span>
         </div>
       )}
@@ -90,9 +98,16 @@ export default function MedicationDetailsPage() {
 
           {/* Back Button */}
           <button onClick={() => window.history.back()} className="flex items-center gap-2 text-gray-500 hover:text-primary mb-4 transition-colors">
-            <span className="material-symbols-outlined">arrow_back</span>
+            <ArrowLeft size={18} />
             <span className="font-medium">Retour</span>
           </button>
+
+          {!medication ? (
+            <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+              <Pill size={52} className="mb-4 opacity-30" />
+              <p className="text-lg font-semibold">Produit introuvable</p>
+            </div>
+          ) : (<>
 
           {/* Breadcrumb */}
           <nav className="text-sm text-gray-500 mb-6">
@@ -108,7 +123,7 @@ export default function MedicationDetailsPage() {
             <div className="space-y-6">
               {/* Product Image */}
               <div className="bg-white rounded-xl p-8 flex justify-center items-center shadow-sm border border-gray-100 min-h-[300px]">
-                <span className="material-symbols-outlined text-gray-200 text-[120px]!">medication</span>
+                <Pill size={120} className="text-gray-200" />
               </div>
 
               {/* Description */}
@@ -135,7 +150,7 @@ export default function MedicationDetailsPage() {
                     <p className="text-gray-500 mt-1">{medication.subtitle}</p>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/30 rounded-lg shrink-0">
-                    <span className="material-symbols-outlined text-primary text-base!">medication</span>
+                    <Pill size={16} className="text-primary" />
                     <span className="text-xs font-semibold text-primary">{medication.category}</span>
                   </div>
                 </div>
@@ -151,7 +166,7 @@ export default function MedicationDetailsPage() {
                     disabled={adding}
                     className="flex-1 h-12 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                   >
-                    <span className="material-symbols-outlined">shopping_cart</span>
+                    <ShoppingCart size={18} />
                     <span>{adding ? 'Ajouté ✓' : 'Ajouter au panier'}</span>
                   </button>
                   <button
@@ -162,7 +177,10 @@ export default function MedicationDetailsPage() {
                         : 'bg-primary/10 text-primary hover:bg-primary/20'
                     }`}
                   >
-                    <span className="material-symbols-outlined">{isFavorite ? 'favorite' : 'favorite_border'}</span>
+                    {isFavorite
+                      ? <Heart size={20} className="fill-red-500" />
+                      : <HeartOff size={20} />
+                    }
                   </button>
                 </div>
               </div>
@@ -206,7 +224,7 @@ export default function MedicationDetailsPage() {
                                   : 'bg-primary/10 text-primary hover:bg-primary/20'
                               }`}
                             >
-                              {isSelected && <span className="material-symbols-outlined text-base!">check_circle</span>}
+                              {isSelected && <CheckCircle size={16} />}
                               {isSelected ? 'Sélectionnée' : 'Choisir'}
                             </button>
                           </div>
@@ -218,6 +236,7 @@ export default function MedicationDetailsPage() {
               </div>
             </div>
           </div>
+          </>)}
         </div>
       </main>
     </>

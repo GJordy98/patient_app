@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-// Helper to check mock mode (same logic as ApiClient.isMockEnabled)
+import { Pill, MailCheck } from 'lucide-react';
+
 const checkMockMode = () => {
   if (typeof window === 'undefined') return false;
   return localStorage.getItem('use_mock_api') === 'true' || !process.env.NEXT_PUBLIC_API_URL;
@@ -31,11 +32,9 @@ const OTPContent = () => {
       return;
     }
     setPhone(storedPhone);
-    // Auto-focus first input
     setTimeout(() => inputRefs.current[0]?.focus(), 100);
   }, [router, phoneFromQuery]);
 
-  // Countdown timer
   useEffect(() => {
     if (countdown <= 0) return;
     const interval = setInterval(() => {
@@ -62,7 +61,6 @@ const OTPContent = () => {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // Auto-submit when all filled
     if (value && index === 5) {
       const code = newOtp.join('');
       if (code.length === 6) {
@@ -105,9 +103,7 @@ const OTPContent = () => {
     setError('');
 
     try {
-      // Use mock mode check
       if (checkMockMode()) {
-        // Simulate success in mock mode
         await new Promise(resolve => setTimeout(resolve, 1000));
         setVerified(true);
         localStorage.removeItem('otpPhone');
@@ -188,14 +184,14 @@ const OTPContent = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-gray-50">
+    <div className="relative flex min-h-screen w-full flex-col bg-[#F8FAFC]">
       {/* Header */}
       <header className="w-full bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push('/')}>
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <span className="material-symbols-outlined text-primary">local_pharmacy</span>
+                <Pill size={20} className="text-primary" />
               </div>
               <div className="flex flex-col leading-tight">
                 <h2 className="text-lg font-bold text-primary">e-Dr TIM</h2>
@@ -209,10 +205,9 @@ const OTPContent = () => {
       {/* Main */}
       <main className="grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md mx-auto">
-
           <div className="text-center mb-8 animate-slide-up">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-              <span className="material-symbols-outlined text-primary text-4xl!">mark_email_read</span>
+              <MailCheck size={36} className="text-primary" />
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900">Vérification OTP</h1>
             <p className="mt-2 text-base text-gray-500">
@@ -223,7 +218,6 @@ const OTPContent = () => {
 
           <div className="bg-white shadow-xl rounded-xl p-6 sm:p-8 animate-slide-up">
             <form onSubmit={handleSubmit} className="space-y-8">
-
               {/* OTP Inputs */}
               <div className="flex justify-center gap-2 sm:gap-3">
                 {otp.map((digit, index) => (
@@ -245,17 +239,15 @@ const OTPContent = () => {
                 ))}
               </div>
 
-              {/* Error */}
               {error && (
                 <p className="text-center text-red-600 text-sm font-medium">{error}</p>
               )}
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={verifying || verified}
                 className={`w-full h-12 rounded-lg font-bold transition-all flex items-center justify-center gap-2
-                  ${verified ? 'bg-emerald-600 text-white' : 'bg-primary text-white hover:bg-primary/90'}
+                  ${verified ? 'bg-emerald-600 text-white' : 'bg-primary text-white hover:bg-[#16A34A]'}
                   disabled:opacity-70
                 `}
               >
@@ -268,7 +260,6 @@ const OTPContent = () => {
                 )}
               </button>
 
-              {/* Resend */}
               <div className="text-center">
                 <p className="text-sm text-gray-500">
                   Vous n&apos;avez pas reçu le code ?
@@ -295,7 +286,6 @@ const OTPContent = () => {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="w-full py-6 border-t border-gray-200 text-center text-sm text-gray-400">
         © 2025 e-Dr Tim Pharmacy. Tous droits réservés.
       </footer>
@@ -306,7 +296,7 @@ const OTPContent = () => {
 export default function OTPVerificationPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     }>
