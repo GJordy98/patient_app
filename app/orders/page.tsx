@@ -17,12 +17,13 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { api } from "@/lib/api-client";
 import { Order } from "@/types/order";
+import { useAutoRefresh } from "@/hooks/autoRefresh";
 
 /* ── Status groups (statuts réels backend) ── */
-const PREPARATION   = ["PENDING", "ACCEPTED", "RESERVED", "PARTIAL_VALIDATION", "PENDING_PATIENT"];
-const EN_LIVRAISON  = ["IN_PICKUP", "IN_DELIVERY"];
-const TERMINE       = ["DELIVERED", "COMPLETED"];
-const ANNULE        = ["CANCELLED", "REJECTED"];
+const PREPARATION = ["PENDING", "ACCEPTED", "RESERVED", "PARTIAL_VALIDATION", "PENDING_PATIENT"];
+const EN_LIVRAISON = ["IN_PICKUP", "IN_DELIVERY"];
+const TERMINE = ["DELIVERED", "COMPLETED"];
+const ANNULE = ["CANCELLED", "REJECTED"];
 
 type FilterType = "all" | "preparation" | "en_livraison" | "completed" | "cancelled";
 
@@ -49,13 +50,12 @@ function MiniTimeline({ status }: { status: string }) {
         <React.Fragment key={label}>
           <div className="flex flex-col items-center">
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                i < step
+              className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${i < step
                   ? "bg-[#22C55E]"
                   : i === step
-                  ? "bg-[#22C55E] ring-2 ring-[#22C55E]/30"
-                  : "bg-[#E2E8F0]"
-              }`}
+                    ? "bg-[#22C55E] ring-2 ring-[#22C55E]/30"
+                    : "bg-[#E2E8F0]"
+                }`}
             >
               <Icon size={12} className={i <= step ? "text-white" : "text-[#94A3B8]"} />
             </div>
@@ -78,10 +78,10 @@ function MiniTimeline({ status }: { status: string }) {
 function OrderCard({ order }: { order: Order }) {
   const date = order.created_at
     ? new Date(order.created_at).toLocaleDateString("fr-FR", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })
     : "—";
   const total =
     order.total_amount !== undefined
@@ -172,39 +172,34 @@ export default function OrdersPage() {
     fetchOrders();
   }, [fetchOrders]);
 
-  /* ── AUTO-REFRESH : polling toutes les 30 secondes ── */
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchOrders();
-    }, 30_000);
-    return () => clearInterval(interval); // cleanup on unmount
-  }, [fetchOrders]);
+  /* ── AUTO-REFRESH : toutes les 15 secondes ── */
+  useAutoRefresh(fetchOrders, 10_000);
 
   /* ── Filter counts ── */
   const counts = useMemo(() => ({
-    all:          orders.length,
-    preparation:  orders.filter((o) => PREPARATION.includes(o.status?.toUpperCase())).length,
+    all: orders.length,
+    preparation: orders.filter((o) => PREPARATION.includes(o.status?.toUpperCase())).length,
     en_livraison: orders.filter((o) => EN_LIVRAISON.includes(o.status?.toUpperCase())).length,
-    completed:    orders.filter((o) => TERMINE.includes(o.status?.toUpperCase())).length,
-    cancelled:    orders.filter((o) => ANNULE.includes(o.status?.toUpperCase())).length,
+    completed: orders.filter((o) => TERMINE.includes(o.status?.toUpperCase())).length,
+    cancelled: orders.filter((o) => ANNULE.includes(o.status?.toUpperCase())).length,
   }), [orders]);
 
   const filtered = useMemo(() => {
     switch (filter) {
-      case "preparation":  return orders.filter((o) => PREPARATION.includes(o.status?.toUpperCase()));
+      case "preparation": return orders.filter((o) => PREPARATION.includes(o.status?.toUpperCase()));
       case "en_livraison": return orders.filter((o) => EN_LIVRAISON.includes(o.status?.toUpperCase()));
-      case "completed":    return orders.filter((o) => TERMINE.includes(o.status?.toUpperCase()));
-      case "cancelled":    return orders.filter((o) => ANNULE.includes(o.status?.toUpperCase()));
-      default:             return orders;
+      case "completed": return orders.filter((o) => TERMINE.includes(o.status?.toUpperCase()));
+      case "cancelled": return orders.filter((o) => ANNULE.includes(o.status?.toUpperCase()));
+      default: return orders;
     }
   }, [orders, filter]);
 
   const TABS: { key: FilterType; label: string; Icon: React.ElementType }[] = [
-    { key: "all",          label: "Toutes",          Icon: ClipboardList },
-    { key: "preparation",  label: "En préparation",  Icon: Clock },
-    { key: "en_livraison", label: "En livraison",    Icon: Truck },
-    { key: "completed",    label: "Terminées",        Icon: CheckCircle },
-    { key: "cancelled",    label: "Annulées",         Icon: XCircle },
+    { key: "all", label: "Toutes", Icon: ClipboardList },
+    { key: "preparation", label: "En préparation", Icon: Clock },
+    { key: "en_livraison", label: "En livraison", Icon: Truck },
+    { key: "completed", label: "Terminées", Icon: CheckCircle },
+    { key: "cancelled", label: "Annulées", Icon: XCircle },
   ];
 
   return (
@@ -233,18 +228,16 @@ export default function OrdersPage() {
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium whitespace-nowrap transition-all duration-200 ${
-              filter === key
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium whitespace-nowrap transition-all duration-200 ${filter === key
                 ? "bg-[#22C55E] text-white shadow-sm"
                 : "bg-white border border-[#E2E8F0] text-[#94A3B8] hover:border-[#22C55E]/40 hover:text-[#1E293B]"
-            }`}
+              }`}
           >
             <Icon size={14} />
             {label}
             <span
-              className={`text-[11px] px-1.5 py-0.5 rounded-full font-semibold ${
-                filter === key ? "bg-white/20 text-white" : "bg-[#F8FAFC] text-[#94A3B8]"
-              }`}
+              className={`text-[11px] px-1.5 py-0.5 rounded-full font-semibold ${filter === key ? "bg-white/20 text-white" : "bg-[#F8FAFC] text-[#94A3B8]"
+                }`}
             >
               {counts[key]}
             </span>

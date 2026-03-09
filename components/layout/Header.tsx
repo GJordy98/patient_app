@@ -106,7 +106,7 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-[1001] w-full bg-white/98 backdrop-blur-md border-b border-gray-100"
       style={{ boxShadow: '0 2px 16px rgba(31,160,26,0.08)' }}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[68px]">
 
           {/* ── Logo ── */}

@@ -31,6 +31,7 @@ import { api } from "@/lib/api-client";
 import type { InvoiceResponse } from "@/lib/api-client";
 import { Order, OrderItem } from "@/types/order";
 import Barcode from "react-barcode";
+import { useAutoRefresh } from "@/hooks/autoRefresh";
 
 const TrackingMap = dynamic(() => import("@/components/orders/TrackingMap"), {
   ssr: false,
@@ -193,22 +194,32 @@ function InvoicesSection({
               {invoice.items.length > 0 ? (
                 <div className="divide-y divide-[#F8FAFC]">
                   {invoice.items.map((item) => {
+                    // Debug temporaire — à retirer en production
+                    console.log('[InvoiceItem] status =', item.status, '| product =', item.product.name);
                     const qty = toNum(item.quantity);
                     const unitP = toNum(item.unit_price);
                     const lineT = toNum(item.line_total);
                     const isReserved = item.status?.toUpperCase() === "RESERVED";
+                    // Indisponible = tout statut présent qui n'est pas RESERVED
+                    const isUnavailable = !!item.status && item.status.toUpperCase() !== "RESERVED";
 
                     return (
                       <div
                         key={item.id}
-                        className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                        className={`flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0 rounded-xl px-2 -mx-2 transition-colors ${
+                          isUnavailable ? "bg-red-50/60" : ""
+                        }`}
                       >
                         <div className="flex items-start gap-3 min-w-0 flex-1">
-                          <div className="w-9 h-9 rounded-xl bg-[#F0FDF4] flex items-center justify-center shrink-0 mt-0.5">
-                            <Pill size={14} className="text-[#22C55E]" />
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                            isUnavailable ? "bg-red-100" : "bg-[#F0FDF4]"
+                          }`}>
+                            <Pill size={14} className={isUnavailable ? "text-[#EF4444]" : "text-[#22C55E]"} />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-[13px] font-bold text-[#1E293B] leading-snug line-clamp-2">
+                            <p className={`text-[13px] font-bold leading-snug line-clamp-2 ${
+                              isUnavailable ? "text-[#EF4444]" : "text-[#1E293B]"
+                            }`}>
                               {item.product.name}
                             </p>
                             {item.product.dci && (
@@ -225,7 +236,7 @@ function InvoicesSection({
                               <span className="text-[11px] text-[#64748B] bg-[#F8FAFC] px-2 py-0.5 rounded-md border border-[#E2E8F0]">
                                 Qté : {qty}
                               </span>
-                              {unitP > 0 && (
+                              {unitP > 0 && !isUnavailable && (
                                 <span className="text-[11px] text-[#64748B]">
                                   × {fmtFCFA(unitP)}
                                 </span>
@@ -235,12 +246,23 @@ function InvoicesSection({
                                   Disponible
                                 </span>
                               )}
+                              {isUnavailable && (
+                                <span className="text-[9px] font-black text-[#EF4444] bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1">
+                                  <XCircle size={9} />
+                                  Indisponible
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
-                        {lineT > 0 && (
+                        {lineT > 0 && !isUnavailable && (
                           <span className="text-[14px] font-black text-[#1E293B] shrink-0">
                             {fmtFCFA(lineT)}
+                          </span>
+                        )}
+                        {isUnavailable && (
+                          <span className="text-[12px] font-bold text-[#EF4444] shrink-0 line-through opacity-60">
+                            {lineT > 0 ? fmtFCFA(lineT) : ""}
                           </span>
                         )}
                       </div>
@@ -526,6 +548,9 @@ export default function OrderDetailPage() {
   }, [id]);
 
   useEffect(() => { fetchOrder(); }, [fetchOrder]);
+
+  /* ── AUTO-REFRESH : toutes les 15 secondes ── */
+  useAutoRefresh(fetchOrder, 10_000);
 
   const handleValidate = async () => {
     setValidating(true);

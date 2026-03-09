@@ -38,19 +38,7 @@ export default function Sidebar() {
     <>
       {/* ── Desktop Sidebar ── */}
       <aside className="hidden lg:flex flex-col fixed left-0 top-[68px] h-[calc(100vh-68px)] w-64 bg-white border-r border-[#E2E8F0] z-30">
-        {/* Logo */}
-        <div className="px-6 py-5 border-b border-[#E2E8F0]">
-          <Link href="/" className="flex items-center gap-3">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="36" height="36" rx="10" fill="#22C55E" />
-              <path d="M18 8v20M8 18h20" stroke="white" strokeWidth="3.5" strokeLinecap="round" />
-            </svg>
-            <div>
-              <span className="text-[15px] font-bold text-[#1E293B] leading-none">EdoctorPharma</span>
-              <p className="text-[11px] text-[#94A3B8] mt-0.5 leading-none">Votre pharmacie en ligne</p>
-            </div>
-          </Link>
-        </div>
+        {/* Logo supprimé */}
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -60,11 +48,10 @@ export default function Sidebar() {
               <Link
                 key={href}
                 href={href}
-                className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
-                  isActive
+                className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${isActive
                     ? "bg-[#F0FDF4] text-[#22C55E]"
                     : "text-[#94A3B8] hover:bg-[#F8FAFC] hover:text-[#1E293B]"
-                }`}
+                  }`}
               >
                 {/* Active indicator */}
                 {isActive && (
@@ -90,11 +77,10 @@ export default function Sidebar() {
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
                     ? "bg-[#F0FDF4] text-[#22C55E]"
                     : "text-[#94A3B8] hover:bg-[#F8FAFC] hover:text-[#1E293B]"
-                }`}
+                  }`}
               >
                 <Icon size={20} />
                 <span className="text-[14px] font-medium">{label}</span>
@@ -131,9 +117,8 @@ export default function Sidebar() {
               <Link
                 key={href}
                 href={href}
-                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 ${
-                  isActive ? "text-[#22C55E]" : "text-[#94A3B8]"
-                }`}
+                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 ${isActive ? "text-[#22C55E]" : "text-[#94A3B8]"
+                  }`}
               >
                 <Icon size={22} className={isActive ? "text-[#22C55E]" : "text-[#94A3B8]"} />
                 <span className="text-[10px] font-medium">{label}</span>
@@ -142,9 +127,8 @@ export default function Sidebar() {
           })}
           <Link
             href="/settings"
-            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 ${
-              pathname === "/settings" ? "text-[#22C55E]" : "text-[#94A3B8]"
-            }`}
+            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 ${pathname === "/settings" ? "text-[#22C55E]" : "text-[#94A3B8]"
+              }`}
           >
             <Settings size={22} />
             <span className="text-[10px] font-medium">Paramètres</span>

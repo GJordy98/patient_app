@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer';
 import { useCart } from '@/context/CartContext';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { api } from '@/lib/api-client';
+import DeliveryMapPicker, { PickedLocation } from '@/components/cart/DeliveryMapPicker';
 import {
   ShoppingCart, Pill, Minus, Plus, Trash2, CheckCircle,
   Upload, ShoppingBag, ClipboardList, Loader2,
@@ -28,7 +29,7 @@ const CartPage = () => {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState('');
   const [coords, setCoords] = useState<{ lat: string; lng: string } | null>(null);
-  const [manualCoords, setManualCoords] = useState('');
+  const [pickedLocation, setPickedLocation] = useState<PickedLocation | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -58,10 +59,7 @@ const CartPage = () => {
 
   const getDeliveryCoords = (): { lat: string; lng: string } | null => {
     if (locationMode === 'auto') return coords;
-    const parts = manualCoords.split(',').map((s) => s.trim());
-    if (parts.length === 2 && !isNaN(Number(parts[0])) && !isNaN(Number(parts[1]))) {
-      return { lat: parts[0], lng: parts[1] };
-    }
+    if (pickedLocation) return { lat: pickedLocation.lat, lng: pickedLocation.lng };
     return null;
   };
 
@@ -84,7 +82,7 @@ const CartPage = () => {
       if (!deliveryCoords) {
         alert(locationMode === 'auto'
           ? 'Veuillez d\'abord localiser votre position GPS ou passer en saisie manuelle.'
-          : 'Veuillez saisir des coordonnées valides (ex: 4.052449, 9.767426).'
+          : 'Veuillez rechercher un lieu et placer le marqueur sur la carte.'
         );
         setCheckingOut(false);
         return;
@@ -238,8 +236,8 @@ const CartPage = () => {
                     type="button"
                     onClick={() => { setLocationMode('auto'); setGpsError(''); }}
                     className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 ${locationMode === 'auto'
-                        ? 'bg-primary text-white border-primary shadow-sm'
-                        : 'bg-white text-gray-500 border-gray-200 hover:border-primary'
+                      ? 'bg-primary text-white border-primary shadow-sm'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-primary'
                       }`}
                   >
                     <Navigation size={12} /> GPS automatique
@@ -248,8 +246,8 @@ const CartPage = () => {
                     type="button"
                     onClick={() => { setLocationMode('manual'); setGpsError(''); }}
                     className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 ${locationMode === 'manual'
-                        ? 'bg-primary text-white border-primary shadow-sm'
-                        : 'bg-white text-gray-500 border-gray-200 hover:border-primary'
+                      ? 'bg-primary text-white border-primary shadow-sm'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-primary'
                       }`}
                   >
                     <MapPin size={12} /> Saisie manuelle
@@ -287,35 +285,9 @@ const CartPage = () => {
                   </div>
                 )}
 
-                {/* Mode manuel */}
+                {/* Mode manuel — carte interactive */}
                 {locationMode === 'manual' && (
-                  <div>
-                    <input
-                      type="text"
-                      value={manualCoords}
-                      onChange={(e) => setManualCoords(e.target.value)}
-                      placeholder="ex: 4.052449, 9.767426"
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-[13px] text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                    <p className="mt-1.5 text-[11px] text-gray-400">
-                      Entrez la latitude et la longitude séparées par une virgule.
-                    </p>
-                    {manualCoords && (() => {
-                      const parts = manualCoords.split(',').map(s => s.trim());
-                      const valid = parts.length === 2 && !isNaN(Number(parts[0])) && !isNaN(Number(parts[1]));
-                      return valid ? (
-                        <div className="mt-1.5 flex items-center gap-1.5">
-                          <CheckCircle size={12} className="text-green-600" />
-                          <span className="text-[11px] text-green-600 font-medium">Coordonnées valides</span>
-                        </div>
-                      ) : (
-                        <div className="mt-1.5 flex items-center gap-1.5">
-                          <AlertCircle size={12} className="text-red-500" />
-                          <span className="text-[11px] text-red-500">Format invalide — utilisez: latitude, longitude</span>
-                        </div>
-                      );
-                    })()}
-                  </div>
+                  <DeliveryMapPicker onLocationChange={setPickedLocation} />
                 )}
               </div>
 

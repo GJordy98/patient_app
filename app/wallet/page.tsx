@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { api } from '@/lib/api-client';
@@ -11,6 +11,7 @@ import {
   Wallet as WalletIcon, ArrowLeft, PlusCircle, CheckCircle,
   Lock, History, ClipboardList, CreditCard, Wifi, Loader2,
 } from 'lucide-react';
+import { useAutoRefresh } from '@/hooks/autoRefresh';
 
 const WalletPage = () => {
   const { isAuthenticated } = useAuthGuard();
@@ -19,26 +20,30 @@ const WalletPage = () => {
   const [loading, setLoading] = useState(true);
   const [showRechargeModal, setShowRechargeModal] = useState(false);
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!isAuthenticated) return;
-
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [walletData, txData] = await Promise.all([
-          api.getWallet(),
-          api.getWalletTransactions()
-        ]);
-        setWallet(walletData);
-        setTransactions(txData);
-      } catch (error) {
-        console.error('Error loading wallet data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    try {
+      setLoading(true);
+      const [walletData, txData] = await Promise.all([
+        api.getWallet(),
+        api.getWalletTransactions()
+      ]);
+      setWallet(walletData);
+      setTransactions(txData);
+    } catch (error) {
+      console.error('Error loading wallet data:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [isAuthenticated]);
+
+  /* ── Chargement initial ── */
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  /* ── AUTO-REFRESH : toutes les 15 secondes ── */
+  useAutoRefresh(fetchData, 10_000, isAuthenticated);
 
   const formatPrice = (amount: number) =>
     new Intl.NumberFormat('fr-FR').format(Math.round(amount)) + ' FCFA';
@@ -156,11 +161,10 @@ const WalletPage = () => {
               transactions.map((tx) => (
                 <div key={tx.id} className="p-5 flex items-center justify-between hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                      tx.type === 'CREDIT'
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tx.type === 'CREDIT'
                         ? 'bg-green-100 text-green-600'
                         : 'bg-red-100 text-red-600'
-                    }`}>
+                      }`}>
                       <CreditCard size={20} />
                     </div>
                     <div>
@@ -169,19 +173,17 @@ const WalletPage = () => {
                         <span className="text-[10px] text-gray-400">
                           {new Date(tx.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                          tx.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
-                          tx.status === 'PENDING' ? 'bg-orange-100 text-orange-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${tx.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                            tx.status === 'PENDING' ? 'bg-orange-100 text-orange-700' :
+                              'bg-red-100 text-red-700'
+                          }`}>
                           {tx.status}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className={`text-right font-black ${
-                    tx.type === 'CREDIT' ? 'text-green-600' : 'text-gray-900'
-                  }`}>
+                  <div className={`text-right font-black ${tx.type === 'CREDIT' ? 'text-green-600' : 'text-gray-900'
+                    }`}>
                     {tx.type === 'CREDIT' ? '+' : '-'}{formatPrice(tx.amount)}
                   </div>
                 </div>

@@ -15,11 +15,6 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "EdoctorPharma – Votre pharmacie en ligne",
   description: "Recherchez et commandez vos médicaments, livrés directement chez vous.",
-  icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
-  },
 };
 
 export default function RootLayout({
