@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { api, UserData } from '@/lib/api-client';
-import { AppNotification } from '@/types/common';
+import { AppNotification, Wallet as WalletData } from '@/types/common';
 import Logo from '@/components/ui/Logo';
 import {
   ShoppingCart, Bell, BellDot, BellOff, UserCircle, X, Menu,
@@ -26,6 +26,7 @@ const Header = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const { items } = useCart();
   const cartCount = items.length;
 
@@ -49,6 +50,12 @@ const Header = () => {
         loadNotifications();
         const profile: UserData | null = await api.getUserProfile();
         setUserData(profile);
+        try {
+          const w = await api.getWallet();
+          if (w) setWalletBalance(w.balance);
+        } catch {
+          // silently ignore wallet errors in header
+        }
       }
     };
     setup();
@@ -138,22 +145,36 @@ const Header = () => {
           {/* ── Right Actions ── */}
           <div className="flex items-center gap-1.5">
 
-            {/* Panier */}
-            <Link
-              href="/cart"
-              className="relative flex h-10 w-10 items-center justify-center rounded-xl hover:bg-primary/8 transition-all duration-200 group"
-              title="Mon panier"
-            >
-              <ShoppingCart size={20} className="text-gray-500 group-hover:text-primary transition-colors" />
-              {cartCount > 0 && (
-                <span
-                  id="cartBadge"
-                  className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm"
+            {/* Wallet balance + Panier */}
+            <div className="flex items-center gap-1">
+              {walletBalance !== null && (
+                <Link
+                  href="/wallet"
+                  title="Mon portefeuille"
+                  className="hidden sm:flex items-center gap-1.5 h-10 px-3 rounded-xl bg-primary/8 hover:bg-primary/15 transition-all duration-200 group"
                 >
-                  {cartCount > 99 ? '99+' : cartCount}
-                </span>
+                  <Wallet size={15} className="text-primary shrink-0" />
+                  <span className="text-[12px] font-black text-primary whitespace-nowrap">
+                    {new Intl.NumberFormat('fr-FR').format(Math.round(walletBalance))} FCFA
+                  </span>
+                </Link>
               )}
-            </Link>
+              <Link
+                href="/cart"
+                className="relative flex h-10 w-10 items-center justify-center rounded-xl hover:bg-primary/8 transition-all duration-200 group"
+                title="Mon panier"
+              >
+                <ShoppingCart size={20} className="text-gray-500 group-hover:text-primary transition-colors" />
+                {cartCount > 0 && (
+                  <span
+                    id="cartBadge"
+                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm"
+                  >
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
+              </Link>
+            </div>
 
             {/* Notifications */}
             <div className="relative">
@@ -287,12 +308,14 @@ const Header = () => {
                 className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-primary/8 transition-all duration-200 group"
                 title="Mon compte"
               >
-                {userInitials ? (
+                {userInitials && userInitials !== '?' ? (
                   <span className="w-8 h-8 rounded-lg bg-primary text-white text-[13px] font-black flex items-center justify-center">
                     {userInitials}
                   </span>
                 ) : (
-                  <UserCircle size={20} className="text-gray-500 group-hover:text-primary transition-colors" />
+                  <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center">
+                    <User size={18} />
+                  </span>
                 )}
               </button>
 
@@ -302,7 +325,7 @@ const Header = () => {
                   <div className="px-5 py-4 bg-gradient-to-r from-primary/5 to-transparent border-b border-gray-100">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-primary text-white font-black text-base flex items-center justify-center">
-                        {userInitials || '?'}
+                        {userInitials && userInitials !== '?' ? userInitials : <User size={20} />}
                       </div>
                       <div className="min-w-0">
                         <p className="font-bold text-gray-900 text-sm truncate">

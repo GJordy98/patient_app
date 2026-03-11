@@ -7,7 +7,6 @@ import {
   ClipboardList,
   ShoppingBag,
   Wallet,
-  Bell,
   UserCircle,
   Settings,
   LogOut,
@@ -19,7 +18,6 @@ const navItems = [
   { href: "/orders", icon: ClipboardList, label: "Mes commandes" },
   { href: "/cart", icon: ShoppingBag, label: "Panier" },
   { href: "/wallet", icon: Wallet, label: "Portefeuille" },
-  { href: "/notifications", icon: Bell, label: "Notifications" },
 ];
 
 const bottomItems = [
