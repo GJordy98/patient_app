@@ -74,6 +74,29 @@ export interface InvoiceResponse {
   created_at: string;
 }
 
+// ========== Sub-Order (Pharmacist Product Proposal) Interfaces ==========
+
+export interface SubOrderProduct {
+  id?: string;
+  name?: string;
+  dci?: string;
+  galenic?: string;
+  [key: string]: unknown;
+}
+
+export interface SubOrderItem {
+  id: string | number;
+  product?: SubOrderProduct;
+  product_name?: string;
+  quantity?: number;
+  sale_price?: number;
+  unit_price?: number;
+  price?: number;
+  line_total?: number;
+  total_price?: number;
+  [key: string]: unknown;
+}
+
 // ========== Pharmacist Product Management Interfaces ==========
 
 export interface PharmacistProduct {
@@ -728,6 +751,38 @@ class ApiClient {
     }, true);
   }
 
+  /**
+   * Récupère les produits proposés par la pharmacie (sous-commande ordonnance).
+   * GET /officine-order/{id}/items-order/
+   * (les items créés via POST /sub-order-item-officine/)
+   */
+  async getSubOrderItems(orderId: string): Promise<SubOrderItem[]> {
+    try {
+      const data = await this.request<SubOrderItem[] | { results?: SubOrderItem[]; items?: SubOrderItem[] }>(
+        `/officine-order/${orderId}/items-order/`,
+        { method: 'GET' },
+        true
+      );
+      if (Array.isArray(data)) return data;
+      return (data as { results?: SubOrderItem[]; items?: SubOrderItem[] }).results
+        ?? (data as { results?: SubOrderItem[]; items?: SubOrderItem[] }).items
+        ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Le patient valide ou refuse la proposition de la pharmacie.
+   * POST /validated-order-by-patient/  { order_id, status: "VALIDATED" | "REJECTED" }
+   */
+  async validateSubOrderByPatient(orderId: string, status: 'VALIDATED' | 'REJECTED'): Promise<{ order_id: string; status: string }> {
+    return await this.request<{ order_id: string; status: string }>('/validated-order-by-patient/', {
+      method: 'POST',
+      body: JSON.stringify({ order_id: orderId, status })
+    }, true);
+  }
+
   async reportDispute(orderId: string, reason: string, photo?: File): Promise<{ success: boolean; message: string }> {
     const formData = new FormData();
     formData.append('order', orderId);
@@ -818,10 +873,33 @@ class ApiClient {
   }
 
   async removeCartItem(itemId: string, quantity = 1): Promise<{ success: boolean; message: string }> {
-    return await this.request<{ success: boolean; message: string }>('/patient-cart/remove_item/', {
+    const { access } = this.getTokens();
+    const response = await fetch(`${API_CONFIG.BASE_URL}/patient-cart/remove_item/`, {
       method: 'POST',
-      body: JSON.stringify({ item_id: itemId, quantity })
-    }, true);
+      headers: {
+        'Content-Type': 'application/json',
+        ...(access ? { Authorization: `Bearer ${access}` } : {}),
+      },
+      body: JSON.stringify({ item_id: itemId, quantity }),
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Erreur HTTP ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
+      } catch { /* corps non-JSON */ }
+      throw new Error(errorMessage);
+    }
+
+    // L'API peut renvoyer un corps vide (204 No Content)
+    const text = await response.text();
+    if (!text) return { success: true, message: 'Article retiré du panier' };
+    try {
+      return JSON.parse(text) as { success: boolean; message: string };
+    } catch {
+      return { success: true, message: 'Article retiré du panier' };
+    }
   }
 
   // ========== Notification Methods ==========

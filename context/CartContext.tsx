@@ -19,8 +19,9 @@ interface CartItem {
 interface CartContextType {
   items: CartItem[];
   loading: boolean;
+  removingItemId: string | null; // ID de l'article en cours de suppression
   total: number;
-  cartTotal: number; // Total from API (total_amount) — source of vérité
+  cartTotal: number; // Total from API (total_amount) — source de vérité
   addItem: (productId: string, pharmacyId: string, quantity: number, productInfo?: Product) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
@@ -32,6 +33,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [removingItemId, setRemovingItemId] = useState<string | null>(null);
   const [cartTotal, setCartTotal] = useState(0);
 
   const refreshCart = useCallback(async () => {
@@ -144,6 +146,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const removeItem = async (itemId: string) => {
     try {
+      setRemovingItemId(itemId);
       // Find the item to get its quantity so we remove all units
       const item = items.find(i => i.id === itemId);
       const qty = item ? item.quantity : 1;
@@ -152,6 +155,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await refreshCart();
     } catch (error) {
       console.error('Error removing from cart:', error);
+      const message = error instanceof Error ? error.message : 'Erreur lors du retrait du produit';
+      alert(message);
+    } finally {
+      setRemovingItemId(null);
     }
   };
 
@@ -179,7 +186,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const total = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   return (
-    <CartContext.Provider value={{ items, loading, total, cartTotal, addItem, removeItem, updateQuantity, refreshCart }}>
+    <CartContext.Provider value={{ items, loading, removingItemId, total, cartTotal, addItem, removeItem, updateQuantity, refreshCart }}>
       {children}
     </CartContext.Provider>
   );

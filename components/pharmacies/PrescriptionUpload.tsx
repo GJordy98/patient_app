@@ -4,9 +4,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { api } from '@/lib/api-client';
 import { Pharmacy } from '@/types/common';
-import { Upload, Building2, FileText, X, AlertCircle, CheckCircle, Send } from 'lucide-react';
+import { Upload, Building2, FileText, X, AlertCircle, CheckCircle, Send, Lock } from 'lucide-react';
 
-const PrescriptionUpload = () => {
+interface PrescriptionUploadProps {
+  /** Si fourni, la pharmacie est pré-sélectionnée et le sélecteur est masqué */
+  pharmacyId?: string;
+  pharmacyName?: string;
+}
+
+const PrescriptionUpload = ({ pharmacyId: preselectedPharmacyId, pharmacyName }: PrescriptionUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -15,23 +21,28 @@ const PrescriptionUpload = () => {
   const [note, setNote] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Mode sélecteur : uniquement si aucune pharmacie n'est pré-sélectionnée
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [selectedPharmacyId, setSelectedPharmacyId] = useState('');
-  const [loadingPharmacies, setLoadingPharmacies] = useState(true);
+  const [loadingPharmacies, setLoadingPharmacies] = useState(!preselectedPharmacyId);
+
+  // L'ID effectif utilisé pour l'appel API
+  const effectivePharmacyId = preselectedPharmacyId || selectedPharmacyId;
 
   useEffect(() => {
+    if (preselectedPharmacyId) return; // Pas besoin de charger la liste
     const load = async () => {
       try {
         const data = await api.getNearbyPharmacies(3.8667, 11.5167);
         setPharmacies(Array.isArray(data) ? data : []);
       } catch {
-        // silently fail — pharmacies list stays empty
+        // silently fail
       } finally {
         setLoadingPharmacies(false);
       }
     };
     load();
-  }, []);
+  }, [preselectedPharmacyId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -47,7 +58,7 @@ const PrescriptionUpload = () => {
 
   const handleUpload = async () => {
     if (!file) return;
-    if (!selectedPharmacyId) {
+    if (!effectivePharmacyId) {
       setError('Veuillez sélectionner une pharmacie.');
       return;
     }
@@ -55,13 +66,13 @@ const PrescriptionUpload = () => {
     try {
       setUploading(true);
       setError('');
-      const result = await api.sendPrescriptionOrder(selectedPharmacyId, file, note || undefined);
+      const result = await api.sendPrescriptionOrder(effectivePharmacyId, file, note || undefined);
       if (result.success) {
         setSuccess(true);
         setFile(null);
         setPreview(null);
         setNote('');
-        setSelectedPharmacyId('');
+        if (!preselectedPharmacyId) setSelectedPharmacyId('');
         if (fileInputRef.current) fileInputRef.current.value = '';
       } else {
         setError(result.message || "Erreur lors de l'envoi.");
@@ -91,12 +102,14 @@ const PrescriptionUpload = () => {
         <div>
           <h2 className="text-xl font-bold text-gray-900">Envoyer une ordonnance</h2>
           <p className="text-sm text-gray-500">
-            Choisissez une pharmacie et joignez votre ordonnance — nous vous rappelons rapidement.
+            {preselectedPharmacyId
+              ? 'Joignez votre ordonnance — la pharmacie vous rappellera rapidement.'
+              : 'Choisissez une pharmacie et joignez votre ordonnance — nous vous rappelons rapidement.'}
           </p>
         </div>
       </div>
 
-      {/* Pharmacy selector */}
+      {/* Pharmacy — pré-sélectionnée (badge verrouillé) OU sélecteur */}
       <div className="mb-5">
         <label className="block text-sm font-bold text-gray-700 mb-2">
           <span className="flex items-center gap-1.5">
@@ -104,7 +117,19 @@ const PrescriptionUpload = () => {
             Pharmacie destinataire <span className="text-red-500">*</span>
           </span>
         </label>
-        {loadingPharmacies ? (
+
+        {preselectedPharmacyId ? (
+          /* Badge verrouillé — pharmacie connue depuis la page de détails */
+          <div className="flex items-center gap-3 px-4 py-3 bg-[#F0FDF4] border border-[#22C55E]/30 rounded-xl">
+            <div className="w-8 h-8 rounded-lg bg-[#22C55E]/15 flex items-center justify-center shrink-0">
+              <Building2 size={16} className="text-[#22C55E]" />
+            </div>
+            <span className="flex-1 font-semibold text-sm text-gray-800 truncate">
+              {pharmacyName || `Pharmacie #${preselectedPharmacyId}`}
+            </span>
+            <Lock size={14} className="text-[#22C55E] shrink-0" />
+          </div>
+        ) : loadingPharmacies ? (
           <div className="flex items-center gap-2 text-sm text-gray-400 py-3">
             <div className="w-4 h-4 border-2 border-[#22C55E] border-t-transparent rounded-full animate-spin" />
             Chargement des pharmacies…
@@ -212,7 +237,7 @@ const PrescriptionUpload = () => {
       <div className="flex flex-col gap-3">
         <button
           onClick={handleUpload}
-          disabled={!file || uploading || !selectedPharmacyId}
+          disabled={!file || uploading || !effectivePharmacyId}
           className="w-full py-3.5 bg-[#22C55E] text-white font-bold rounded-xl shadow-md shadow-primary/25 hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0"
         >
           {uploading ? (

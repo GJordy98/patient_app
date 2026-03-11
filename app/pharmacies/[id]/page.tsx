@@ -49,7 +49,7 @@ const PharmacyDetailsPage = () => {
   useEffect(() => {
     if (!id) return;
     api.getPharmacySchedule(id as string)
-      .then(res => { if (res.schedule) setSchedule(res.schedule); })
+      .then(res => { if (res.schedules) setSchedule(res.schedules as unknown as ScheduleDay[]); })
       .catch(() => { /* silencieux — horaires optionnels */ });
   }, [id]);
 
@@ -131,7 +131,10 @@ const PharmacyDetailsPage = () => {
 
           <ProductCatalog pharmacyId={pharmacy.id} />
 
-          <PrescriptionUpload />
+          <PrescriptionUpload
+            pharmacyId={String(pharmacy.id)}
+            pharmacyName={pharmacy.name || pharmacy.officine_name || undefined}
+          />
         </main>
       )}
 

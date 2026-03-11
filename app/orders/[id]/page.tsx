@@ -28,7 +28,7 @@ import {
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { api } from "@/lib/api-client";
-import type { InvoiceResponse } from "@/lib/api-client";
+import type { InvoiceResponse, SubOrderItem } from "@/lib/api-client";
 import { Order, OrderItem } from "@/types/order";
 import Barcode from "react-barcode";
 import { useAutoRefresh } from "@/hooks/autoRefresh";
@@ -525,21 +525,29 @@ export default function OrderDetailPage() {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [invoices, setInvoices] = useState<InvoiceResponse[]>([]);
+  const [subItems, setSubItems] = useState<SubOrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<any>(null);
   const [validating, setValidating] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [isSubValidating, setIsSubValidating] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     if (!id) return;
     try {
-      const [data, invData] = await Promise.all([
-        api.getOrderById(id),
-        api.getInvoiceByOrderId(id),
-      ]);
+      // 1. Récupère l'officine-order — son `data.id` est l'officine-order ID
+      const data = await api.getOrderById(id);
       setOrder(data);
+
+      // 2. Utilise data.id (officine-order ID) pour les appels dépendants
+      const officineOrderId = data?.id ?? id;
+      const [invData, subData] = await Promise.all([
+        api.getInvoiceByOrderId(officineOrderId),
+        api.getSubOrderItems(officineOrderId),
+      ]);
       setInvoices(invData);
+      setSubItems(subData);
     } catch {
       console.error("Erreur fetch");
     } finally {
@@ -573,6 +581,24 @@ export default function OrderDetailPage() {
       router.push("/orders");
     } catch {
       setRejecting(false);
+    }
+  };
+
+  const handleSubValidate = async (status: 'VALIDATED' | 'REJECTED') => {
+    setIsSubValidating(true);
+    try {
+      await api.validateSubOrderByPatient(order!.id, status);
+      setFeedback({
+        type: status === 'VALIDATED' ? 'success' : 'error',
+        message: status === 'VALIDATED'
+          ? '✅ Proposition acceptée ! La pharmacie prépare votre commande.'
+          : '❌ Proposition refusée.',
+      });
+      await fetchOrder();
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err.message || 'Erreur lors de la validation.' });
+    } finally {
+      setIsSubValidating(false);
     }
   };
 
@@ -685,7 +711,7 @@ export default function OrderDetailPage() {
           </div>
 
           {/* ──────── EN ATTENTE DE LA PHARMACIE ──────── */}
-          {isPendingPharmacy && !hasInvoices && (
+          {isPendingPharmacy && !hasInvoices && subItems.length === 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-3">
               <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
                 <Clock size={18} className="text-amber-600" />
@@ -695,6 +721,92 @@ export default function OrderDetailPage() {
                 <p className="text-[12px] text-amber-600 mt-0.5">
                   La pharmacie prépare votre commande. Vous recevrez une notification dès qu'elle sera prête.
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* ──────── PROPOSITION DE LA PHARMACIE (SOUS-COMMANDE ORDONNANCE) ──────── */}
+          {subItems.length > 0 && !hasInvoices && (
+            <div className="bg-white rounded-2xl border-2 border-[#22C55E]/40 shadow-md overflow-hidden">
+              {/* En-tête */}
+              <div className="bg-gradient-to-r from-[#F0FDF4] to-[#ECFDF5] px-5 py-4 border-b border-[#22C55E]/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#22C55E]/10 flex items-center justify-center">
+                    <Pill size={18} className="text-[#22C55E]" />
+                  </div>
+                  <div>
+                    <p className="text-[15px] font-black text-[#1E293B]">💊 Proposition de la pharmacie</p>
+                    <p className="text-[11px] text-[#64748B] mt-0.5">
+                      La pharmacie a sélectionné {subItems.length} produit{subItems.length > 1 ? 's' : ''} disponible{subItems.length > 1 ? 's' : ''} pour votre ordonnance.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Liste des produits */}
+              <div className="p-5 space-y-3">
+                <div className="divide-y divide-[#F8FAFC]">
+                  {subItems.map((item, index) => {
+                    const name =
+                      (item.product as { name?: string } | undefined)?.name ||
+                      item.product_name ||
+                      `Produit ${index + 1}`;
+                    const dci = (item.product as { dci?: string } | undefined)?.dci;
+                    const qty = item.quantity ?? 1;
+                    const price = item.sale_price ?? item.unit_price ?? item.price ?? 0;
+                    const total = item.line_total ?? item.total_price ?? (price * qty);
+                    return (
+                      <div key={String(item.id ?? index)} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <div className="w-8 h-8 rounded-lg bg-[#F0FDF4] flex items-center justify-center shrink-0 mt-0.5">
+                            <Pill size={14} className="text-[#22C55E]" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-bold text-[#1E293B] leading-snug line-clamp-2">{name}</p>
+                            {dci && (
+                              <p className="text-[10px] text-[#64748B] mt-0.5">DCI : {dci}</p>
+                            )}
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              <span className="text-[11px] text-[#64748B] bg-[#F8FAFC] px-2 py-0.5 rounded-md border border-[#E2E8F0]">
+                                Qté : {qty}
+                              </span>
+                              {price > 0 && (
+                                <span className="text-[11px] text-[#64748B]">
+                                  × {Math.round(Number(price)).toLocaleString('fr-FR')} FCFA
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        {Number(total) > 0 && (
+                          <span className="text-[13px] font-black text-[#1E293B] shrink-0">
+                            {Math.round(Number(total)).toLocaleString('fr-FR')} FCFA
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Boutons Accepter / Refuser */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => handleSubValidate('VALIDATED')}
+                    disabled={isSubValidating}
+                    className="flex-1 bg-[#22C55E] hover:bg-[#16A34A] disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-[14px] shadow-sm"
+                  >
+                    {isSubValidating ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                    Accepter
+                  </button>
+                  <button
+                    onClick={() => handleSubValidate('REJECTED')}
+                    disabled={isSubValidating}
+                    className="flex-1 border border-[#EF4444] text-[#EF4444] hover:bg-red-50 disabled:opacity-60 font-semibold py-3.5 rounded-xl text-[14px] transition-colors flex items-center justify-center gap-2"
+                  >
+                    {isSubValidating ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
+                    Refuser
+                  </button>
+                </div>
               </div>
             </div>
           )}
