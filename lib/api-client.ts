@@ -874,19 +874,23 @@ class ApiClient {
 
   async removeCartItem(itemId: string, quantity = 1): Promise<{ success: boolean; message: string }> {
     const { access } = this.getTokens();
+    const payload = { item_id: itemId, quantity };
+    console.log('[removeCartItem] payload envoyé:', JSON.stringify(payload));
+
     const response = await fetch(`${API_CONFIG.BASE_URL}/patient-cart/remove_item/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(access ? { Authorization: `Bearer ${access}` } : {}),
       },
-      body: JSON.stringify({ item_id: itemId, quantity }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       let errorMessage = `Erreur HTTP ${response.status}`;
       try {
         const errorData = await response.json();
+        console.error('[removeCartItem] Réponse erreur serveur:', JSON.stringify(errorData));
         errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
       } catch { /* corps non-JSON */ }
       throw new Error(errorMessage);
@@ -896,7 +900,9 @@ class ApiClient {
     const text = await response.text();
     if (!text) return { success: true, message: 'Article retiré du panier' };
     try {
-      return JSON.parse(text) as { success: boolean; message: string };
+      const result = JSON.parse(text) as { success: boolean; message: string };
+      console.log('[removeCartItem] Réponse succès:', JSON.stringify(result));
+      return result;
     } catch {
       return { success: true, message: 'Article retiré du panier' };
     }

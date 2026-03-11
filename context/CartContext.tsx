@@ -75,7 +75,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const normalizedItems = apiItems.map((item: APICartItem) => {
         const localItem = localCart.find((l: Partial<CartItem>) => l.product_id === item.product || l.id === item.id);
         
-        const qty = typeof item.quantity === 'number' ? item.quantity : (parseFloat(item.quantity) || 1);
+        // Correction : parseFloat("0.0000") vaut 0, donc on évite le "|| 1" qui le transformait en 1
+        const parsedQty = typeof item.quantity === 'number' ? item.quantity : parseFloat(item.quantity);
+        const qty = isNaN(parsedQty) ? 1 : parsedQty;
+
         // Individual item price: prefer API value, then localStorage, then 0
         const itemPrice = item.sale_price ?? item.price ?? localItem?.price ?? 0;
 
@@ -96,7 +99,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             price: itemPrice
           } as Product
         };
-      });
+      }).filter(item => item.quantity > 0); // Exclure les items zombies avec quantité 0
 
       setItems(normalizedItems);
     } catch (error) {
@@ -147,10 +150,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const removeItem = async (itemId: string) => {
     try {
       setRemovingItemId(itemId);
-      // Find the item to get its quantity so we remove all units
       const item = items.find(i => i.id === itemId);
       const qty = item ? item.quantity : 1;
-      console.log(`[CartContext] removeItem: id=${itemId}, quantity=${qty}`);
+      console.log(`[CartContext] removeItem: id=${itemId}, qty=${qty}, item=`, JSON.stringify(item));
       await api.removeCartItem(itemId, qty);
       await refreshCart();
     } catch (error) {
