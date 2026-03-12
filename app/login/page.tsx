@@ -55,8 +55,14 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#22C55E] mb-4 shadow-lg shadow-green-200">
-            <img src="/logo.png" alt="Logo" width={32} height={32} />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img
+              src="/logo.png"
+              alt="Logo"
+              width={80}
+              height={80}
+              className="rounded-2xl shadow-lg shadow-green-200"
+            />
           </div>
           <h1 className="text-[28px] font-bold text-[#1E293B] leading-none">EdoctorPharma</h1>
           <p className="text-[14px] text-[#94A3B8] mt-2">Connectez-vous à votre compte patient</p>
