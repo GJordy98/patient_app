@@ -19,52 +19,55 @@ const Footer = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
 
-          {/* Brand */}
+          {/* Brand — gauche */}
           <div className="flex flex-col gap-4">
-            <Logo size={44} variant="full" />
+            <div className="self-start">
+              <Logo size={44} variant="full" />
+            </div>
             <p className="text-sm text-gray-500 leading-relaxed max-w-[260px]">
               Commandez vos médicaments en ligne et recevez-les rapidement directement chez vous.
             </p>
           </div>
 
-          {/* Navigation */}
-          <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Navigation</h4>
-            <ul className="flex flex-col gap-3">
-              {[
-                { href: '/', label: 'Accueil' },
-                { href: '/pharmacies', label: 'Pharmacies' },
-                { href: '/#productsSection', label: 'Catalogue' },
-                { href: '/#uploadSection', label: 'Ordonnances' },
-                { href: '/orders', label: 'Mes Commandes' },
-                { href: '/wallet', label: 'Mon Wallet' },
-              ].map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-sm text-gray-600 hover:text-primary transition-colors font-medium"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {/* Navigation — milieu */}
+          <div className="md:flex md:flex-col md:items-center">
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Navigation</h4>
+              <ul className="flex flex-col gap-3">
+                {[
+                  { href: '/', label: 'Accueil' },
+                  { href: '/pharmacies', label: 'Pharmacies' },
+                  { href: '/#productsSection', label: 'Catalogue' },
+                  { href: '/orders', label: 'Mes Commandes' },
+                  { href: '/wallet', label: 'Mon Wallet' },
+                ].map(({ href, label }) => (
+                  <li key={href}>
+                    <Link href={href} className="text-sm text-gray-600 hover:text-primary transition-colors font-medium">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          {/* Trust badges */}
-          <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Pourquoi nous choisir</h4>
-            <ul className="flex flex-col gap-3">
-              {trustItems.map(({ Icon, label }) => (
-                <li key={label} className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon size={15} className="text-primary" />
-                  </div>
-                  <span className="text-sm text-gray-600 font-medium">{label}</span>
-                </li>
-              ))}
-            </ul>
+          {/* Trust badges — droite */}
+          <div className="md:flex md:flex-col md:items-end">
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Pourquoi nous choisir</h4>
+              <ul className="flex flex-col gap-3">
+                {trustItems.map(({ Icon, label }) => (
+                  <li key={label} className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Icon size={15} className="text-primary" />
+                    </div>
+                    <span className="text-sm text-gray-600 font-medium">{label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
+
         </div>
       </div>
 
