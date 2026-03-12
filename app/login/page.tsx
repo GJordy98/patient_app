@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Phone, Lock, Loader2 } from "lucide-react";
 import { api } from "@/lib/api-client";
+import Image from "next/image";
 
 
 const COUNTRY_CODES = [
@@ -56,11 +57,11 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img
+            <Image
               src="/logo.png"
-              alt="Logo"
-              width={80}
-              height={80}
+              alt="Logo e-Dr TIM"
+              width={100}
+              height={100}
               className="rounded-2xl shadow-lg shadow-green-200"
             />
           </div>
