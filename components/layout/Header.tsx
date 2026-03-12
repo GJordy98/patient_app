@@ -100,7 +100,6 @@ const Header = () => {
     { href: '/', label: 'Accueil', Icon: Home },
     { href: '/pharmacies', label: 'Pharmacies', Icon: Building2 },
     { href: '/#productsSection', label: 'Produits', Icon: Pill },
-    { href: '/#uploadSection', label: 'Ordonnances', Icon: FileText },
   ];
 
   const getNotifIcon = (notif: AppNotification) => {
