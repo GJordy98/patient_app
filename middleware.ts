@@ -14,10 +14,18 @@ const publicStaticPaths = [
   '/_next',
   '/favicon.ico',
   '/api',
+  '/logo.png',
+  '/favicon-edrtim.png',
 ];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+
+  // Autoriser toutes les images et fichiers statiques
+  if (pathname.match(/\.(png|jpg|jpeg|svg|ico|webp|gif)$/)) {
+    return NextResponse.next();
+  }
 
   // Autoriser les fichiers statiques et les routes API
   if (publicStaticPaths.some(path => pathname.startsWith(path))) {
@@ -31,7 +39,7 @@ export function middleware(request: NextRequest) {
 
   // Vérifier l'authentification via les cookies (seul mécanisme disponible côté serveur)
   const accessToken = request.cookies.get('access_token')?.value ||
-                      request.headers.get('authorization')?.replace('Bearer ', '');
+    request.headers.get('authorization')?.replace('Bearer ', '');
 
   if (!accessToken) {
     // Rediriger vers la page de connexion avec le chemin d'origine comme paramètre redirect
