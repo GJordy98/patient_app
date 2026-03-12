@@ -18,7 +18,7 @@ import {
 const CartPage = () => {
   const [mounted, setMounted] = useState(false);
   const { isAuthenticated } = useAuthGuard();
-  const { items, cartTotal, loading, removeItem, updateQuantity, refreshCart } = useCart();
+  const { items, cartTotal, deliveryFee, loading, removeItem, updateQuantity, refreshCart } = useCart();
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<{ orderId: string } | null>(null);
@@ -212,14 +212,24 @@ const CartPage = () => {
                   <span>Sous-total</span>
                   <span>{cartTotal.toLocaleString('fr-FR')} FCFA</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Frais de service</span>
-                  <span>Gratuit</span>
-                </div>
+                {items.length > 0 && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>Frais de livraison</span>
+                    {deliveryFee > 0
+                      ? <span>{deliveryFee.toLocaleString('fr-FR')} FCFA</span>
+                      : <span className="text-green-600 font-semibold">Gratuit</span>
+                    }
+                  </div>
+                )}
                 <hr className="border-gray-100" />
                 <div className="flex justify-between text-lg font-bold text-gray-900">
                   <span>Total</span>
-                  <span className="text-primary">{cartTotal.toLocaleString('fr-FR')} FCFA</span>
+                  <span className="text-primary">
+                    {items.length > 0
+                      ? (cartTotal + deliveryFee).toLocaleString('fr-FR')
+                      : cartTotal.toLocaleString('fr-FR')
+                    } FCFA
+                  </span>
                 </div>
               </div>
 

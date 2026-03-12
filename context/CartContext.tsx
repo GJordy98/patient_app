@@ -22,6 +22,7 @@ interface CartContextType {
   removingItemId: string | null; // ID de l'article en cours de suppression
   total: number;
   cartTotal: number; // Total from API (total_amount) — source de vérité
+  deliveryFee: number; // Frais de livraison estimés par le backend
   addItem: (productId: string, pharmacyId: string, quantity: number, productInfo?: Product) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
@@ -35,6 +36,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<string | null>(null);
   const [cartTotal, setCartTotal] = useState(0);
+  const [deliveryFee, setDeliveryFee] = useState(0);
 
   const refreshCart = useCallback(async () => {
     try {
@@ -57,10 +59,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let totalAmount = 0;
 
       if (rawData?.cart?.items) {
-        // New API structure: { cart: { items: [...], total_amount, id } }
+        // New API structure: { cart: { items: [...], total_amount, id }, delivery_fee }
         apiItems = rawData.cart.items;
         cartId = rawData.cart.id;
         totalAmount = parseFloat(rawData.cart.total_amount) || 0;
+        setDeliveryFee(typeof rawData.delivery_fee === 'number' ? rawData.delivery_fee : parseFloat(rawData.delivery_fee) || 0);
       } else if (Array.isArray(data)) {
         apiItems = data;
       } else if ((data as CartResponse)?.cart) {
@@ -188,7 +191,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const total = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   return (
-    <CartContext.Provider value={{ items, loading, removingItemId, total, cartTotal, addItem, removeItem, updateQuantity, refreshCart }}>
+    <CartContext.Provider value={{ items, loading, removingItemId, total, cartTotal, deliveryFee, addItem, removeItem, updateQuantity, refreshCart }}>
       {children}
     </CartContext.Provider>
   );
