@@ -30,7 +30,7 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import { api } from "@/lib/api-client";
 import type { InvoiceResponse, SubOrderItem } from "@/lib/api-client";
 import { Order, OrderItem } from "@/types/order";
-import Barcode from "react-barcode";
+import { QRCodeSVG } from "qrcode.react";
 import { useAutoRefresh } from "@/hooks/autoRefresh";
 
 const TrackingMap = dynamic(() => import("@/components/orders/TrackingMap"), {
@@ -459,17 +459,15 @@ function ReceptionCode({ code }: { code: string }) {
         </div>
       </div>
 
-      {/* Code-barres CODE128 */}
+      {/* QR Code */}
       <div className="bg-white rounded-xl p-4 border border-[#E2E8F0] flex flex-col items-center">
-        <Barcode
+        <QRCodeSVG
           value={code}
-          format="CODE128"
-          width={2.2}
-          height={90}
-          displayValue={false}
-          margin={8}
-          background="#ffffff"
-          lineColor="#1E293B"
+          size={160}
+          bgColor="#ffffff"
+          fgColor="#1E293B"
+          level="M"
+          includeMargin={true}
         />
         {/* Code en clair */}
         {/* Code en clair */}
