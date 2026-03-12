@@ -33,7 +33,7 @@ export default function MedicationDetailsPage() {
             id: String(p?.id ?? id),
             name: p?.name ?? id,
             subtitle: p?.galenic,
-            category: p?.category,
+            category: typeof p?.category === 'object' && p?.category !== null ? p.category.name : p?.category,
             price: first.sale_price || first.price || 0,
             image: p?.image,
           });
