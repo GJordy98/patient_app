@@ -12,6 +12,7 @@ import {
   RefreshCw,
   ShoppingBag,
   Package,
+  FileDown,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -24,6 +25,14 @@ const PREPARATION = ["PENDING", "ACCEPTED", "RESERVED", "PARTIAL_VALIDATION", "P
 const EN_LIVRAISON = ["IN_PICKUP", "IN_DELIVERY"];
 const TERMINE = ["DELIVERED", "COMPLETED"];
 const ANNULE = ["CANCELLED", "REJECTED"];
+
+/* Statuts où au moins 1 pharmacie a validé → facture disponible */
+const PHARMACY_VALIDATED = ["PARTIAL_VALIDATION", "ACCEPTED", "IN_PICKUP", "IN_DELIVERY", "DELIVERED", "COMPLETED"];
+const hasPharmacyValidated = (status: string) => PHARMACY_VALIDATED.includes(status?.toUpperCase());
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+// Retire le segment /v1 terminal pour reconstituer la base brute (ex: https://host/api)
+const getInvoicePdfUrl = (orderId: string) => `${API_BASE}/get-invoice-order-patient/${orderId}/pdf/`;
 
 type FilterType = "all" | "preparation" | "en_livraison" | "completed" | "cancelled";
 
@@ -88,6 +97,22 @@ function OrderCard({ order }: { order: Order }) {
       ? `${Number(order.total_amount).toLocaleString("fr-FR")} FCFA`
       : "—";
 
+  const showInvoiceBtn = hasPharmacyValidated(order.status);
+
+  const handleDownloadInvoice = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = getInvoicePdfUrl(order.id);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `facture-commande-${String(order.id).slice(-8).toUpperCase()}.pdf`;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Link
       href={`/orders/${order.id}`}
@@ -113,7 +138,19 @@ function OrderCard({ order }: { order: Order }) {
 
       <MiniTimeline status={order.status} />
 
-      <div className="flex items-center justify-end mt-3">
+      <div className="flex items-center justify-between mt-3">
+        {showInvoiceBtn ? (
+          <button
+            onClick={handleDownloadInvoice}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F0FDF4] border border-[#22C55E]/30 text-[#16A34A] text-[12px] font-semibold hover:bg-[#22C55E] hover:text-white transition-all duration-200"
+            title="Télécharger votre facture"
+          >
+            <FileDown size={13} />
+            Télécharger votre facture
+          </button>
+        ) : (
+          <span />
+        )}
         <span className="text-[12px] text-[#22C55E] font-medium flex items-center gap-1">
           Voir les détails <ChevronRight size={14} />
         </span>
