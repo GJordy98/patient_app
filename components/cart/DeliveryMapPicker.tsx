@@ -164,7 +164,7 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ center, onMarkerMove }) => {
     return (
         <div
             ref={mapRef}
-            style={{ height: '280px', width: '100%', borderRadius: '12px', overflow: 'hidden' }}
+            style={{ height: '450px', width: '100%', borderRadius: '12px', overflow: 'hidden' }}
         />
     );
 };
@@ -174,7 +174,7 @@ const LeafletMapDynamic = dynamic(() => Promise.resolve(LeafletMap), {
     ssr: false,
     loading: () => (
         <div
-            style={{ height: '280px' }}
+            style={{ height: '450px' }}
             className="w-full rounded-xl bg-gray-100 flex flex-col items-center justify-center"
         >
             <Loader2 size={24} className="text-primary animate-spin mb-2" />
@@ -227,6 +227,12 @@ const DeliveryMapPicker: React.FC<DeliveryMapPickerProps> = ({ onLocationChange 
         setSuggestions([]);
         setSearchError('');
         if (searchTimeout.current) clearTimeout(searchTimeout.current);
+        // Lancer la recherche automatiquement après 400ms de pause
+        if (val.trim().length >= 3) {
+            searchTimeout.current = setTimeout(() => {
+                searchPlace(val);
+            }, 400);
+        }
     };
 
     const handleSelectSuggestion = (result: NominatimResult) => {

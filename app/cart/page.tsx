@@ -301,7 +301,7 @@ const CartPage = () => {
                       className="w-full py-2.5 border-2 border-dashed border-primary/40 rounded-xl text-xs font-semibold text-primary hover:bg-primary/5 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                     >
                       {gpsLoading
-                        ? <><Loader2 size={13} className="animate-spin" /> Localisation en cours…</>
+                        ? <><Loader2 size={13} className="animate-spin" /> Localisation en cours&hellip;</>
                         : <><Navigation size={13} /> Utiliser ma position actuelle</>
                       }
                     </button>
@@ -322,14 +322,14 @@ const CartPage = () => {
                   </div>
                 )}
 
-                {/* Mode manuel — carte interactive */}
+                {/* Mode manuel — indication vers la carte en plein écran dessous */}
                 {locationMode === 'manual' && (
-                  <DeliveryMapPicker
-                    onLocationChange={(loc) => {
-                      setPickedLocation(loc);
-                      if (loc) fetchDeliveryFee(loc.lat, loc.lng);
-                    }}
-                  />
+                  <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-3 py-2">
+                    <MapPin size={13} className="text-primary shrink-0" />
+                    <span className="text-[11px] text-primary font-medium">
+                      Sélectionnez votre adresse sur la carte ci-dessous
+                    </span>
+                  </div>
                 )}
               </div>
 
@@ -375,6 +375,34 @@ const CartPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Carte pleine largeur — mode saisie manuelle */}
+        {locationMode === 'manual' && items.length > 0 && (
+          <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <MapPin size={15} className="text-primary" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-[#1E293B]">Choisissez votre point de livraison</h2>
+                <p className="text-[11px] text-gray-400">Cliquez sur la carte ou glissez le marqueur pour ajuster</p>
+              </div>
+              {pickedLocation && (
+                <span className="ml-auto text-[11px] text-green-600 font-semibold bg-green-50 border border-green-200 px-2 py-1 rounded-lg flex items-center gap-1">
+                  <CheckCircle size={11} /> Adresse sélectionnée
+                </span>
+              )}
+            </div>
+            <div className="p-4">
+              <DeliveryMapPicker
+                onLocationChange={(loc) => {
+                  setPickedLocation(loc);
+                  if (loc) fetchDeliveryFee(loc.lat, loc.lng);
+                }}
+              />
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />
