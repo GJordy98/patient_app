@@ -58,12 +58,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let cartId: string | undefined;
       let totalAmount = 0;
 
+      // Extraire le delivery_fee depuis rawData quelle que soit la structure de la réponse
+      const rawFee = rawData?.delivery_fee ?? rawData?.cart?.delivery_fee;
+      const parsedFee = typeof rawFee === 'number' ? rawFee : parseFloat(String(rawFee ?? '')) || 0;
+      setDeliveryFee(parsedFee);
+
       if (rawData?.cart?.items) {
         // New API structure: { cart: { items: [...], total_amount, id }, delivery_fee }
         apiItems = rawData.cart.items;
         cartId = rawData.cart.id;
         totalAmount = parseFloat(rawData.cart.total_amount) || 0;
-        setDeliveryFee(typeof rawData.delivery_fee === 'number' ? rawData.delivery_fee : parseFloat(rawData.delivery_fee) || 0);
       } else if (Array.isArray(data)) {
         apiItems = data;
       } else if ((data as CartResponse)?.cart) {

@@ -694,7 +694,10 @@ export default function OrderDetailPage() {
               <div className="flex justify-between items-center bg-[#F8FAFC] p-4 rounded-xl border border-[#E2E8F0]">
                 <span className="text-[14px] font-bold text-[#64748B]">Montant Final</span>
                 <span className="text-[20px] font-black text-[#1E293B]">
-                  {Number(order.total_amount).toLocaleString()} FCFA
+                  {(
+                    parseFloat(String(order.total_amount || 0)) +
+                    parseFloat(String(order.delivery_fee || 0))
+                  ).toLocaleString("fr-FR")} FCFA
                 </span>
               </div>
             )}

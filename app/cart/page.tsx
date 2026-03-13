@@ -18,10 +18,14 @@ import {
 const CartPage = () => {
   const [mounted, setMounted] = useState(false);
   const { isAuthenticated } = useAuthGuard();
-  const { items, cartTotal, deliveryFee, loading, removeItem, updateQuantity, refreshCart } = useCart();
+  const { items, cartTotal, loading, removeItem, updateQuantity, refreshCart } = useCart();
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<{ orderId: string } | null>(null);
+
+  // Frais de livraison estimés dynamiquement selon la position
+  const [estimatedDeliveryFee, setEstimatedDeliveryFee] = useState<number | null>(null);
+  const [feeLoading, setFeeLoading] = useState(false);
 
   // Localisation de livraison
   type LocationMode = 'auto' | 'manual';
@@ -33,6 +37,22 @@ const CartPage = () => {
 
   useEffect(() => setMounted(true), []);
 
+  // Récupère le frais de livraison estimé depuis le backend selon la position
+  const fetchDeliveryFee = async (lat: string, lng: string) => {
+    setFeeLoading(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data = await api.getCartWithLocation(lat, lng) as any;
+      const rawFee = data?.delivery_fee ?? data?.cart?.delivery_fee;
+      const fee = typeof rawFee === 'number' ? rawFee : parseFloat(String(rawFee ?? '')) || 0;
+      setEstimatedDeliveryFee(fee);
+    } catch {
+      // Si erreur, on laisse à null (pas de mise à jour
+    } finally {
+      setFeeLoading(false);
+    }
+  };
+
   const detectGPS = () => {
     if (!navigator.geolocation) {
       setGpsError('La géolocalisation n\'est pas supportée par votre navigateur.');
@@ -43,11 +63,11 @@ const CartPage = () => {
     setCoords(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCoords({
-          lat: pos.coords.latitude.toFixed(6),
-          lng: pos.coords.longitude.toFixed(6),
-        });
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        setCoords({ lat, lng });
         setGpsLoading(false);
+        fetchDeliveryFee(lat, lng);
       },
       () => {
         setGpsError('Impossible de récupérer votre position. Vérifiez les autorisations.');
@@ -207,31 +227,38 @@ const CartPage = () => {
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
               <h2 className="text-lg font-bold mb-4 text-[#1E293B]">Récapitulatif</h2>
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-gray-600">
-                  <span>Sous-total</span>
-                  <span>{cartTotal.toLocaleString('fr-FR')} FCFA</span>
-                </div>
-                {items.length > 0 && (
+                <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-gray-600">
-                    <span>Frais de livraison</span>
-                    {deliveryFee > 0
-                      ? <span>{deliveryFee.toLocaleString('fr-FR')} FCFA</span>
-                      : <span className="text-green-600 font-semibold">Gratuit</span>
-                    }
+                    <span>Sous-total</span>
+                    <span>{cartTotal.toLocaleString('fr-FR')} FCFA</span>
                   </div>
-                )}
-                <hr className="border-gray-100" />
-                <div className="flex justify-between text-lg font-bold text-gray-900">
-                  <span>Total</span>
-                  <span className="text-primary">
-                    {items.length > 0
-                      ? (cartTotal + deliveryFee).toLocaleString('fr-FR')
-                      : cartTotal.toLocaleString('fr-FR')
-                    } FCFA
-                  </span>
+                  {items.length > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Frais de livraison</span>
+                      {feeLoading ? (
+                        <span className="text-gray-400 text-sm italic flex items-center gap-1">
+                          <Loader2 size={12} className="animate-spin" /> Calcul…
+                        </span>
+                      ) : estimatedDeliveryFee === null ? (
+                        <span className="text-gray-400 text-sm italic">Entrez votre adresse</span>
+                      ) : estimatedDeliveryFee > 0 ? (
+                        <span>{estimatedDeliveryFee.toLocaleString('fr-FR')} FCFA</span>
+                      ) : (
+                        <span className="text-green-600 font-semibold">Gratuit</span>
+                      )}
+                    </div>
+                  )}
+                  <hr className="border-gray-100" />
+                  <div className="flex justify-between text-lg font-bold text-gray-900">
+                    <span>Total</span>
+                    <span className="text-primary">
+                      {items.length > 0
+                        ? (cartTotal + (estimatedDeliveryFee ?? 0)).toLocaleString('fr-FR')
+                        : cartTotal.toLocaleString('fr-FR')
+                      } FCFA
+                    </span>
+                  </div>
                 </div>
-              </div>
 
               {/* Localisation de livraison */}
               <div className="mb-5">
@@ -297,7 +324,12 @@ const CartPage = () => {
 
                 {/* Mode manuel — carte interactive */}
                 {locationMode === 'manual' && (
-                  <DeliveryMapPicker onLocationChange={setPickedLocation} />
+                  <DeliveryMapPicker
+                    onLocationChange={(loc) => {
+                      setPickedLocation(loc);
+                      if (loc) fetchDeliveryFee(loc.lat, loc.lng);
+                    }}
+                  />
                 )}
               </div>
 

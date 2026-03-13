@@ -820,6 +820,19 @@ class ApiClient {
     }
   }
 
+  async getCartWithLocation(lat: string, lng: string): Promise<CartResponse | APICartItem[]> {
+    try {
+      return await this.request<CartResponse | APICartItem[]>(
+        `/patient-cart/get_cart/?latitude=${lat}&longitude=${lng}`,
+        { method: 'GET' },
+        true
+      );
+    } catch (error) {
+      console.error('[getCartWithLocation] Erreur:', error);
+      return [];
+    }
+  }
+
   async getCartById(cartId: string): Promise<CartResponse | null> {
     try {
       return await this.request<CartResponse>(`/patient-cart/${cartId}/`, { method: 'GET' }, true);
