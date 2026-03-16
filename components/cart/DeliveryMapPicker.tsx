@@ -285,34 +285,26 @@ const DeliveryMapPicker: React.FC<DeliveryMapPickerProps> = ({ onLocationChange 
         <div className="space-y-3">
             {/* Search bar */}
             <div className="relative">
-                <div className="flex gap-2">
-                    <div className="relative flex-1">
-                        <input
-                            type="text"
-                            value={query}
-                            onChange={handleQueryChange}
-                            onKeyDown={(e) => e.key === 'Enter' && searchPlace(query)}
-                            placeholder="Ex: Akwa Douala, Bastos Yaoundé…"
-                            className="w-full pl-3 pr-8 py-2.5 border border-gray-200 rounded-xl text-[13px] text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                        />
-                        {query && (
-                            <button
-                                onClick={handleClear}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                            >
-                                <X size={14} />
-                            </button>
-                        )}
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => searchPlace(query)}
-                        disabled={searching || !query.trim()}
-                        className="px-3 py-2 bg-primary text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 hover:bg-green-700 transition-all disabled:opacity-50 shrink-0"
-                    >
-                        {searching ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
-                        Rechercher
-                    </button>
+                <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <input
+                        type="text"
+                        value={query}
+                        onChange={handleQueryChange}
+                        placeholder="Ex: Akwa Douala, Bastos Yaoundé…"
+                        className="w-full pl-9 pr-8 py-2.5 border border-gray-200 rounded-xl text-[13px] text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    />
+                    {query && (
+                        <button
+                            onClick={handleClear}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
+                    {searching && (
+                        <Loader2 size={13} className="absolute right-8 top-1/2 -translate-y-1/2 text-primary animate-spin" />
+                    )}
                 </div>
 
                 {/* Suggestions dropdown */}
