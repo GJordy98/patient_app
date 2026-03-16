@@ -13,6 +13,7 @@ import {
   Navigation,
   Loader2,
   ShoppingBag,
+  ShoppingCart,
   ToggleLeft,
   ToggleRight,
   Package,
@@ -60,6 +61,8 @@ interface PharmacyCardProps {
   matchCount?: number;
   distance: number | null;
   onOrder: () => void;
+  onAddToCart?: () => void;
+  isAddingToCart?: boolean;
   highlighted?: boolean;
   onHover: (id: string | null) => void;
 }
@@ -72,6 +75,8 @@ function PharmacyCard({
   matchCount,
   distance,
   onOrder,
+  onAddToCart,
+  isAddingToCart,
   highlighted,
   onHover,
 }: PharmacyCardProps) {
@@ -143,11 +148,26 @@ function PharmacyCard({
         )}
 
         <button
-          onClick={onOrder}
-          className="w-full flex items-center justify-center gap-1.5 bg-[#22C55E] hover:bg-[#16A34A] text-white text-[13px] font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+          onClick={onAddToCart ?? onOrder}
+          disabled={isAddingToCart}
+          className="w-full flex items-center justify-center gap-1.5 bg-[#22C55E] hover:bg-[#16A34A] disabled:opacity-70 disabled:cursor-not-allowed text-white text-[13px] font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
         >
-          <ShoppingBag size={14} />
-          Commander ici
+          {isAddingToCart ? (
+            <>
+              <Loader2 size={14} className="animate-spin" />
+              Ajout en cours…
+            </>
+          ) : onAddToCart ? (
+            <>
+              <ShoppingCart size={14} />
+              Ajouter au panier
+            </>
+          ) : (
+            <>
+              <ShoppingBag size={14} />
+              Commander ici
+            </>
+          )}
         </button>
       </div>
     </div>
@@ -177,6 +197,7 @@ export default function HomePage() {
     Map<string, { pharmacy: Pharmacy; items: CatalogItem[] }>
   >(new Map());
   const [highlightedPharmacy, setHighlightedPharmacy] = useState<string | null>(null);
+  const [addingToCartPharmacyId, setAddingToCartPharmacyId] = useState<string | null>(null);
 
   // Adresse de livraison
   const [useCurrentLocation, setUseCurrentLocation] = useState(true);
@@ -192,7 +213,7 @@ export default function HomePage() {
   const [allProducts, setAllProducts] = useState<CatalogItem[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
-  const { addItem } = useCart();
+  const { addItem, refreshCart } = useCart();
 
   /* ── GPS ── */
   useEffect(() => {
@@ -406,6 +427,18 @@ export default function HomePage() {
 
   const hasSearch = selectedProducts.length > 0;
 
+  // Produits recherchés qui n'apparaissent dans aucune pharmacie
+  const unavailableProducts = useMemo(() => {
+    if (!hasSearch || isSearching) return [];
+    const foundProductIds = new Set<string>();
+    pharmacyProductMap.forEach(({ items }) => {
+      items.forEach((ci) => {
+        foundProductIds.add(String(ci.product?.id ?? ci.id));
+      });
+    });
+    return selectedProducts.filter((p) => !foundProductIds.has(p.id));
+  }, [hasSearch, isSearching, pharmacyProductMap, selectedProducts]);
+
   const displayedOnMap = useMemo(() => {
     if (hasSearch && matchingPharmacies.length > 0)
       return matchingPharmacies.map((m) => m.pharmacy);
@@ -427,6 +460,26 @@ export default function HomePage() {
   const handleOrder = useCallback((pharmacyId: string) => {
     window.location.href = `/pharmacies/${pharmacyId}`;
   }, []);
+
+  const handleAddPharmacyToCart = useCallback(
+    async (pharmacyId: string, items: CatalogItem[]) => {
+      setAddingToCartPharmacyId(pharmacyId);
+      try {
+        // Appels API en parallèle SANS refreshCart intermédiaire,
+        // puis un seul refreshCart à la fin pour éviter les conflits.
+        await Promise.allSettled(
+          items.map((ci) => {
+            const productId = String(ci.product?.id ?? ci.id);
+            return api.addToCart(productId, 1, pharmacyId);
+          })
+        );
+        await refreshCart();
+      } finally {
+        setAddingToCartPharmacyId(null);
+      }
+    },
+    [refreshCart]
+  );
 
   const handleMapClick = useCallback(
     (lat: number, lng: number) => {
@@ -695,9 +748,12 @@ export default function HomePage() {
               {!loadingPharmacies && !isSearching && (
                 <div className="px-4 pb-4 pt-3 space-y-3">
                   {listPharmacies.map(({ pharmacy, products, totalPrice, matchCount }) => {
+                    const pharmId = String(pharmacy.id);
                     const dist = userLocation
                       ? haversine(userLocation.lat, userLocation.lng, pharmacy.latitude, pharmacy.longitude)
                       : null;
+                    const pharmEntry = pharmacyProductMap.get(pharmId);
+                    const canAddToCart = hasSearch && pharmEntry && pharmEntry.items.length > 0;
                     return (
                       <PharmacyCard
                         key={pharmacy.id}
@@ -707,8 +763,14 @@ export default function HomePage() {
                         searchedCount={hasSearch ? selectedProducts.length : undefined}
                         matchCount={matchCount}
                         distance={dist}
-                        onOrder={() => handleOrder(String(pharmacy.id))}
-                        highlighted={highlightedPharmacy === String(pharmacy.id)}
+                        onOrder={() => handleOrder(pharmId)}
+                        onAddToCart={
+                          canAddToCart
+                            ? () => handleAddPharmacyToCart(pharmId, pharmEntry!.items)
+                            : undefined
+                        }
+                        isAddingToCart={addingToCartPharmacyId === pharmId}
+                        highlighted={highlightedPharmacy === pharmId}
                         onHover={setHighlightedPharmacy}
                       />
                     );
@@ -718,6 +780,24 @@ export default function HomePage() {
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                       <Building2 size={48} className="text-[#E2E8F0] mb-3" />
                       <p className="text-[14px] text-[#94A3B8]">Aucune pharmacie à proximité</p>
+                    </div>
+                  )}
+
+                  {/* Produits introuvables */}
+                  {hasSearch && !isSearching && unavailableProducts.length > 0 && (
+                    <div className="space-y-2 pt-1">
+                      {unavailableProducts.map((p) => (
+                        <div
+                          key={p.id}
+                          className="flex items-start gap-2 px-3 py-2.5 bg-[#FFF7ED] border border-[#FED7AA] rounded-xl"
+                        >
+                          <Pill size={14} className="text-[#F97316] shrink-0 mt-0.5" />
+                          <p className="text-[12px] text-[#92400E] leading-snug">
+                            <span className="font-semibold">{p.name}</span>{" "}
+                            n&apos;est pas disponible dans nos pharmacies
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   )}
 
