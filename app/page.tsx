@@ -82,92 +82,71 @@ function PharmacyCard({
 }: PharmacyCardProps) {
   const name = pharmacy.name || pharmacy.officine_name || "Pharmacie";
   const address = pharmacy.quartier || pharmacy.location || pharmacy.address || "";
-  const total = matchedProducts?.length ?? 0;
 
   return (
     <div
       onMouseEnter={() => onHover(String(pharmacy.id))}
       onMouseLeave={() => onHover(null)}
-      className={`bg-white rounded-xl border transition-all duration-200 cursor-pointer ${
-        highlighted
-          ? "border-[#22C55E] shadow-md shadow-green-100"
-          : "border-[#E2E8F0] shadow-sm hover:shadow-md hover:border-[#22C55E]/40"
+      className={`bg-white rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${
+        highlighted ? "border-[#22C55E] shadow-lg ring-1 ring-[#22C55E]/20" : "border-[#E2E8F0] shadow-sm hover:shadow-md hover:border-[#22C55E]/40"
       }`}
     >
-      <div className="p-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-[#F0FDF4] flex items-center justify-center shrink-0">
-              <Building2 size={16} className="text-[#22C55E]" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[14px] font-semibold text-[#1E293B] truncate">{name}</p>
-              {address && (
-                <p className="text-[12px] text-[#94A3B8] truncate flex items-center gap-1">
-                  <MapPin size={10} />
-                  {address}
-                </p>
-              )}
-            </div>
-          </div>
-          {distance !== null && (
-            <span className="text-[11px] font-semibold text-[#22C55E] bg-[#F0FDF4] px-2 py-0.5 rounded-full shrink-0">
-              {formatDistance(distance)}
-            </span>
+      <div className="p-5">
+        {/* TOP : matchCount + prix */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[11px] font-bold text-[#22C55E] bg-[#F0FDF4] px-2 py-1 rounded-md uppercase tracking-wider">
+            {matchCount} / {searchedCount} trouvé(s)
+          </span>
+          {totalPrice !== undefined && totalPrice > 0 && (
+            <p className="text-[18px] font-black text-[#1E293B]">
+              {totalPrice.toLocaleString("fr-FR")} <small className="text-[10px] font-bold text-[#94A3B8]">FCFA</small>
+            </p>
           )}
         </div>
 
-        {/* Médicaments correspondants */}
-        {total > 0 && (
-          <div className="mb-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#22C55E] bg-[#F0FDF4] px-2.5 py-1 rounded-full">
-                <Pill size={11} />
-                {searchedCount && searchedCount > 0
-                  ? `${matchCount}/${searchedCount} médicament${searchedCount > 1 ? "s" : ""}`
-                  : `${total} médicament${total > 1 ? "s" : ""} disponible${total > 1 ? "s" : ""}`}
-              </span>
-              {totalPrice !== undefined && totalPrice > 0 && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-white bg-[#22C55E] px-2.5 py-1 rounded-full">
-                  Total : {totalPrice.toLocaleString("fr-FR")} FCFA
-                </span>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-1 mt-1.5">
-              {matchedProducts!.slice(0, 3).map((n) => (
-                <span key={n} className="text-[11px] text-[#94A3B8] bg-[#F8FAFC] px-2 py-0.5 rounded-full border border-[#E2E8F0]">
-                  {n}
-                </span>
-              ))}
-              {matchedProducts!.length > 3 && (
-                <span className="text-[11px] text-[#94A3B8]">+{matchedProducts!.length - 3}</span>
-              )}
-            </div>
+        {/* MILIEU : liste des produits matchés */}
+        {matchedProducts && matchedProducts.length > 0 && (
+          <div className="space-y-2 mb-6">
+            {matchedProducts.map((productName, idx) => (
+              <div key={idx} className="flex items-start gap-3">
+                <div className="mt-2 w-1.5 h-1.5 rounded-full bg-[#22C55E] shrink-0" />
+                <span className="text-[16px] font-bold text-[#1E293B] leading-tight">{productName}</span>
+              </div>
+            ))}
           </div>
         )}
 
+        <div className="h-[1px] w-full bg-[#F1F5F9] mb-4" />
+
+        {/* BAS : nom de la pharmacie + adresse */}
+        <div className="flex items-end justify-between gap-4 mb-5">
+          <div className="min-w-0">
+            <p className="text-[11px] text-[#94A3B8] font-medium mb-1 italic">Disponible chez :</p>
+            <div className="flex items-center gap-1.5">
+              <Building2 size={14} className="text-[#64748B]" />
+              <p className="text-[13px] font-extrabold text-[#334155] uppercase truncate">{name}</p>
+            </div>
+            {address && (
+              <p className="text-[11px] text-[#94A3B8] mt-0.5 flex items-center gap-1 truncate">
+                <MapPin size={9} />
+                {address}
+              </p>
+            )}
+          </div>
+          {distance !== null && (
+            <div className="shrink-0 text-[11px] font-bold text-[#22C55E] flex items-center gap-1">
+              <Navigation size={10} /> {formatDistance(distance)}
+            </div>
+          )}
+        </div>
+
+        {/* BOUTON action */}
         <button
           onClick={onAddToCart ?? onOrder}
           disabled={isAddingToCart}
-          className="w-full flex items-center justify-center gap-1.5 bg-[#22C55E] hover:bg-[#16A34A] disabled:opacity-70 disabled:cursor-not-allowed text-white text-[13px] font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+          className="w-full flex items-center justify-center gap-2 bg-[#22C55E] hover:bg-[#16A34A] disabled:opacity-70 disabled:cursor-not-allowed text-white text-[14px] font-bold py-3.5 rounded-xl transition-all"
         >
-          {isAddingToCart ? (
-            <>
-              <Loader2 size={14} className="animate-spin" />
-              Ajout en cours…
-            </>
-          ) : onAddToCart ? (
-            <>
-              <ShoppingCart size={14} />
-              Ajouter au panier
-            </>
-          ) : (
-            <>
-              <ShoppingBag size={14} />
-              Commander ici
-            </>
-          )}
+          {isAddingToCart ? <Loader2 size={16} className="animate-spin" /> : onAddToCart ? <><ShoppingCart size={18} /> Ajouter tout</> : <><ShoppingBag size={18} /> Commander</>}
         </button>
       </div>
     </div>
@@ -726,6 +705,22 @@ export default function HomePage() {
 
             {/* Liste scrollable */}
             <div className="flex-1 overflow-y-auto">
+
+              {/* ALERTE PRODUITS INDISPONIBLES — toujours en haut */}
+              {hasSearch && !isSearching && unavailableProducts.length > 0 && (
+                <div className="px-4 pt-3 space-y-2">
+                  {unavailableProducts.map((p) => (
+                    <div key={p.id} className="flex items-start gap-2 px-3 py-2.5 bg-[#FFF7ED] border border-[#FED7AA] rounded-xl shadow-sm">
+                      <X size={14} className="text-[#F97316] shrink-0 mt-0.5" />
+                      <p className="text-[12px] text-[#92400E] leading-snug">
+                        <span className="font-bold uppercase text-[11px]">{p.name}</span> n&apos;est disponible dans aucune pharmacie à proximité.
+                      </p>
+                    </div>
+                  ))}
+                  <div className="h-[1px] bg-[#F1F5F9] w-full my-2" />
+                </div>
+              )}
+
               {/* Skeletons */}
               {(loadingPharmacies || isSearching) && (
                 <div className="px-4 pt-3 space-y-3">
@@ -780,24 +775,6 @@ export default function HomePage() {
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                       <Building2 size={48} className="text-[#E2E8F0] mb-3" />
                       <p className="text-[14px] text-[#94A3B8]">Aucune pharmacie à proximité</p>
-                    </div>
-                  )}
-
-                  {/* Produits introuvables */}
-                  {hasSearch && !isSearching && unavailableProducts.length > 0 && (
-                    <div className="space-y-2 pt-1">
-                      {unavailableProducts.map((p) => (
-                        <div
-                          key={p.id}
-                          className="flex items-start gap-2 px-3 py-2.5 bg-[#FFF7ED] border border-[#FED7AA] rounded-xl"
-                        >
-                          <Pill size={14} className="text-[#F97316] shrink-0 mt-0.5" />
-                          <p className="text-[12px] text-[#92400E] leading-snug">
-                            <span className="font-semibold">{p.name}</span>{" "}
-                            n&apos;est pas disponible dans nos pharmacies
-                          </p>
-                        </div>
-                      ))}
                     </div>
                   )}
 
