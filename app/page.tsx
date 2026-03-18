@@ -25,6 +25,7 @@ import ProductDetailsModal from "@/components/products/ProductDetailsModal";
 import { api } from "@/lib/api-client";
 import { useCart } from "@/context/CartContext";
 import { Pharmacy, CatalogItem, Product } from "@/types/common";
+import { loadGoogleMaps } from "@/lib/google-maps-loader";
 
 const PharmacyMap = dynamic(() => import("@/components/pharmacies/Map"), {
   ssr: false,
@@ -36,7 +37,7 @@ const PharmacyMap = dynamic(() => import("@/components/pharmacies/Map"), {
   ),
 });
 
-/* ── Haversine distance ── */
+/* ── Haversine fallback (vol d'oiseau) ── */
 function haversine(lat1: number, lng1: number, lat2?: number, lng2?: number): number | null {
   if (!lat2 || !lng2) return null;
   const R = 6371;
@@ -184,6 +185,18 @@ export default function HomePage() {
   const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [pointingOnMap, setPointingOnMap] = useState(false);
 
+  // Places Autocomplete pour le champ adresse de livraison
+  const [addressSuggestions, setAddressSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const addressAutocompleteRef = useRef<google.maps.places.AutocompleteService | null>(null);
+  const addressSessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
+  const addressSearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const addressInputRef = useRef<HTMLInputElement | null>(null);
+  const addressSuggestionsRef = useRef<HTMLDivElement | null>(null);
+
+  // Distances routières via Google Distance Matrix (pharmId -> km)
+  const [roadDistances, setRoadDistances] = useState<globalThis.Map<string, number>>(new globalThis.Map());
+
   // Modal détails produit
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedProductAvailability, setSelectedProductAvailability] = useState<CatalogItem[]>([]);
@@ -204,6 +217,74 @@ export default function HomePage() {
     } else {
       setUserLocation({ lat: 3.8667, lng: 11.5167 });
     }
+  }, []);
+
+  /* ── Init Places Autocomplete service ── */
+  useEffect(() => {
+    loadGoogleMaps().then(() => {
+      addressAutocompleteRef.current = new google.maps.places.AutocompleteService();
+      addressSessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
+    });
+  }, []);
+
+  /* ── Distance Matrix : calculer les vraies distances routières ── */
+  useEffect(() => {
+    if (!userLocation || pharmacies.length === 0) return;
+    loadGoogleMaps().then(() => {
+      const validPharmacies = pharmacies.filter((p) => {
+        const lat = parseFloat(String(p.latitude ?? 0));
+        const lng = parseFloat(String(p.longitude ?? 0));
+        return !isNaN(lat) && !isNaN(lng) && lat !== 0;
+      });
+      if (validPharmacies.length === 0) return;
+
+      // Distance Matrix accepte max 25 destinations à la fois
+      const chunks: Pharmacy[][] = [];
+      for (let i = 0; i < validPharmacies.length; i += 10) {
+        chunks.push(validPharmacies.slice(i, i + 10));
+      }
+
+      const distanceService = new google.maps.DistanceMatrixService();
+      const origin = { lat: userLocation.lat, lng: userLocation.lng };
+
+      chunks.forEach((chunk) => {
+        distanceService.getDistanceMatrix(
+          {
+            origins: [origin],
+            destinations: chunk.map((p) => ({
+              lat: parseFloat(String(p.latitude ?? 0)),
+              lng: parseFloat(String(p.longitude ?? 0)),
+            })),
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (response, status) => {
+            if (status !== "OK" || !response) return;
+            const elements = response.rows[0]?.elements ?? [];
+            setRoadDistances((prev) => {
+              const next = new globalThis.Map(prev);
+              chunk.forEach((pharmacy, idx) => {
+                const el = elements[idx];
+                if (el?.status === "OK") {
+                  next.set(String(pharmacy.id), el.distance.value / 1000); // en km
+                }
+              });
+              return next;
+            });
+          }
+        );
+      });
+    });
+  }, [userLocation, pharmacies]);
+
+  /* ── Fermer suggestions adresse au clic extérieur ── */
+  useEffect(() => {
+    const handleMouseDown = (e: MouseEvent) => {
+      if (addressSuggestionsRef.current && !addressSuggestionsRef.current.contains(e.target as Node)) {
+        setShowAddressSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
   }, []);
 
   /* ── Pharmacies proches ── */
@@ -622,15 +703,79 @@ export default function HomePage() {
 
               {!useCurrentLocation && (
                 <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-                  <div className="relative flex-1">
+                  {/* Champ adresse avec Places Autocomplete */}
+                  <div ref={addressSuggestionsRef} className="relative flex-1">
                     <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#EF4444]" />
                     <input
+                      ref={addressInputRef}
                       type="text"
                       value={deliveryAddress}
-                      onChange={(e) => setDeliveryAddress(e.target.value)}
-                      placeholder="Saisir une adresse de livraison…"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setDeliveryAddress(val);
+                        setShowAddressSuggestions(false);
+                        if (addressSearchTimeoutRef.current) clearTimeout(addressSearchTimeoutRef.current);
+                        if (val.trim().length >= 2 && addressAutocompleteRef.current) {
+                          addressSearchTimeoutRef.current = setTimeout(() => {
+                            addressAutocompleteRef.current!.getPlacePredictions(
+                              {
+                                input: val,
+                                sessionToken: addressSessionTokenRef.current ?? undefined,
+                                componentRestrictions: { country: ['cm', 'ci', 'sn', 'mg', 'cd', 'ga', 'cg', 'gn'] },
+                                types: ['geocode', 'establishment'],
+                              },
+                              (predictions, status) => {
+                                if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+                                  setAddressSuggestions(predictions.slice(0, 5));
+                                  setShowAddressSuggestions(true);
+                                } else {
+                                  setAddressSuggestions([]);
+                                }
+                              }
+                            );
+                          }, 350);
+                        }
+                      }}
+                      placeholder="Quartier ou adresse de livraison…"
                       className="w-full pl-8 pr-4 py-2 border border-[#E2E8F0] rounded-lg text-[13px] focus:outline-none focus:border-[#EF4444] transition-all"
                     />
+                    {/* Dropdown suggestions */}
+                    {showAddressSuggestions && addressSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E2E8F0] rounded-xl shadow-lg z-[1100] overflow-hidden">
+                        {addressSuggestions.map((pred) => (
+                          <button
+                            key={pred.place_id}
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setShowAddressSuggestions(false);
+                              setDeliveryAddress(pred.structured_formatting.main_text);
+                              addressSessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
+                              // Géocoder pour obtenir les coordonnées
+                              const geocoder = new google.maps.Geocoder();
+                              geocoder.geocode({ placeId: pred.place_id }, (results, status) => {
+                                if (status === 'OK' && results?.[0]) {
+                                  const loc = results[0].geometry.location;
+                                  setDeliveryCoords({ lat: loc.lat(), lng: loc.lng() });
+                                  setDeliveryAddress(pred.structured_formatting.main_text);
+                                }
+                              });
+                            }}
+                            className="w-full flex items-start gap-2 px-3 py-2 text-left text-[12px] text-[#1E293B] hover:bg-[#FFF5F5] transition-colors border-b border-[#F1F5F9] last:border-0"
+                          >
+                            <MapPin size={12} className="text-[#EF4444] mt-0.5 shrink-0" />
+                            <div>
+                              <span className="font-medium block">{pred.structured_formatting.main_text}</span>
+                              <span className="text-[#94A3B8] text-[11px]">{pred.structured_formatting.secondary_text}</span>
+                            </div>
+                          </button>
+                        ))}
+                        <div className="flex justify-end px-3 py-1 bg-gray-50 border-t border-gray-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src="https://maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white3.png" alt="Powered by Google" className="h-3.5" />
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => setPointingOnMap(true)}
@@ -744,9 +889,12 @@ export default function HomePage() {
                 <div className="px-4 pb-4 pt-3 space-y-3">
                   {listPharmacies.map(({ pharmacy, products, totalPrice, matchCount }) => {
                     const pharmId = String(pharmacy.id);
-                    const dist = userLocation
-                      ? haversine(userLocation.lat, userLocation.lng, pharmacy.latitude, pharmacy.longitude)
-                      : null;
+                    // Priorité : distance routière Distance Matrix, sinon haversine en fallback
+                    const dist = roadDistances.has(pharmId)
+                      ? roadDistances.get(pharmId)!
+                      : userLocation
+                        ? haversine(userLocation.lat, userLocation.lng, pharmacy.latitude, pharmacy.longitude)
+                        : null;
                     const pharmEntry = pharmacyProductMap.get(pharmId);
                     const canAddToCart = hasSearch && pharmEntry && pharmEntry.items.length > 0;
                     return (

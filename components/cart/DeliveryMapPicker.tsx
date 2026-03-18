@@ -1,373 +1,303 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import dynamic from 'next/dynamic';
 import { Search, MapPin, Loader2, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { loadGoogleMaps } from '@/lib/google-maps-loader';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                      */
 /* -------------------------------------------------------------------------- */
 
 export interface PickedLocation {
-    lat: string;
-    lng: string;
-    label: string;
-}
-
-interface NominatimResult {
-    place_id: number;
-    display_name: string;
-    lat: string;
-    lon: string;
+  lat: string;
+  lng: string;
+  label: string;
 }
 
 interface DeliveryMapPickerProps {
-    onLocationChange: (location: PickedLocation | null) => void;
+  onLocationChange: (location: PickedLocation | null) => void;
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Inner map component (loaded client-side only)                              */
+/*  SVG marker                                                                 */
 /* -------------------------------------------------------------------------- */
 
-interface LeafletMapProps {
-    center: [number, number];
-    onMarkerMove: (lat: number, lng: number) => void;
+const DELIVERY_MARKER_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20" cy="20" r="20" fill="rgba(22,163,74,0.25)"/>
+  <circle cx="20" cy="20" r="13" fill="#16a34a" stroke="white" stroke-width="2.5"/>
+  <path d="M20 12 C15.59 12 12 15.59 12 20 C12 25.5 20 32 20 32 C20 32 28 25.5 28 20 C28 15.59 24.41 12 20 12Z" fill="white" opacity="0.9"/>
+  <circle cx="20" cy="19.5" r="3" fill="#16a34a"/>
+</svg>`;
+
+function svgToUrl(svg: string) {
+  return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
 }
-
-// ⚠️ This sub-component is dynamically imported below to avoid SSR issues with Leaflet
-const LeafletMap: React.FC<LeafletMapProps> = ({ center, onMarkerMove }) => {
-    const mapRef = useRef<HTMLDivElement>(null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mapInstanceRef = useRef<any>(null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const markerRef = useRef<any>(null);
-
-    useEffect(() => {
-        if (!mapRef.current) return;
-
-        // cancelled flag — prevents the async Leaflet import callback from running
-        // after React StrictMode unmounts + remounts the component (double-invoke).
-        let cancelled = false;
-
-        import('leaflet').then((L) => {
-            // Bail out if the effect was already cleaned up before the import resolved
-            if (cancelled || !mapRef.current) return;
-            // Also bail if the container was already registered by a previous run
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if ((mapRef.current as any)._leaflet_id) return;
-
-            // Fix default marker icons (Webpack / Next.js breaks the default URL)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            delete (L.Icon.Default.prototype as any)._getIconUrl;
-            L.Icon.Default.mergeOptions({
-                iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-            });
-
-            const map = L.map(mapRef.current!, {
-                center,
-                zoom: 15,
-                zoomControl: true,
-            });
-            mapInstanceRef.current = map;
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                maxZoom: 19,
-            }).addTo(map);
-
-            // Custom pulsing icon for delivery
-            const deliveryIcon = L.divIcon({
-                html: `
-          <div style="
-            position: relative;
-            width: 36px;
-            height: 36px;
-          ">
-            <div style="
-              position: absolute;
-              inset: 0;
-              background: rgba(22, 163, 74, 0.3);
-              border-radius: 50%;
-              animation: pulse 2s ease-in-out infinite;
-            "></div>
-            <div style="
-              position: absolute;
-              inset: 6px;
-              background: #16a34a;
-              border-radius: 50%;
-              border: 2px solid white;
-              box-shadow: 0 2px 8px rgba(22,163,74,0.5);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            ">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
-            </div>
-          </div>
-          <style>
-            @keyframes pulse {
-              0%, 100% { transform: scale(1); opacity: 0.7; }
-              50% { transform: scale(1.5); opacity: 0; }
-            }
-          </style>
-        `,
-                className: '',
-                iconSize: [36, 36],
-                iconAnchor: [18, 18],
-            });
-
-            const marker = L.marker(center, {
-                draggable: true,
-                icon: deliveryIcon,
-            }).addTo(map);
-            markerRef.current = marker;
-
-            marker.bindTooltip('Faites glisser pour ajuster', { permanent: false, direction: 'top' });
-
-            // Update coordinates when marker is dragged
-            marker.on('dragend', () => {
-                const pos = marker.getLatLng();
-                onMarkerMove(pos.lat, pos.lng);
-            });
-
-            // Click on map moves marker
-            map.on('click', (e: { latlng: { lat: number; lng: number } }) => {
-                marker.setLatLng([e.latlng.lat, e.latlng.lng]);
-                onMarkerMove(e.latlng.lat, e.latlng.lng);
-            });
-        });
-
-        return () => {
-            // Signal the pending async import to abort initialisation
-            cancelled = true;
-            if (mapInstanceRef.current) {
-                mapInstanceRef.current.remove();
-                mapInstanceRef.current = null;
-                markerRef.current = null;
-            }
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    // Update map view and marker position when center prop changes
-    useEffect(() => {
-        if (!mapInstanceRef.current || !markerRef.current) return;
-        mapInstanceRef.current.setView(center, 15, { animate: true });
-        markerRef.current.setLatLng(center);
-    }, [center]);
-
-    return (
-        <div
-            ref={mapRef}
-            style={{ height: '450px', width: '100%', borderRadius: '12px', overflow: 'hidden' }}
-        />
-    );
-};
-
-// Dynamic import — avoids SSR crash (Leaflet uses `window`)
-const LeafletMapDynamic = dynamic(() => Promise.resolve(LeafletMap), {
-    ssr: false,
-    loading: () => (
-        <div
-            style={{ height: '450px' }}
-            className="w-full rounded-xl bg-gray-100 flex flex-col items-center justify-center"
-        >
-            <Loader2 size={24} className="text-primary animate-spin mb-2" />
-            <span className="text-xs text-gray-500">Chargement de la carte…</span>
-        </div>
-    ),
-});
 
 /* -------------------------------------------------------------------------- */
 /*  Main component                                                             */
 /* -------------------------------------------------------------------------- */
 
 const DeliveryMapPicker: React.FC<DeliveryMapPickerProps> = ({ onLocationChange }) => {
-    const [query, setQuery] = useState('');
-    const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
-    const [searching, setSearching] = useState(false);
-    const [searchError, setSearchError] = useState('');
-    const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
-    const [pickedLabel, setPickedLabel] = useState('');
-    const [markerCoords, setMarkerCoords] = useState<{ lat: number; lng: number } | null>(null);
-    const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [mapVisible, setMapVisible] = useState(false);
+  const [pickedLabel, setPickedLabel] = useState('');
+  const [markerCoords, setMarkerCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [mapsReady, setMapsReady] = useState(false);
 
-    const searchPlace = useCallback(async (searchQuery: string) => {
-        if (!searchQuery.trim()) return;
-        setSearching(true);
-        setSearchError('');
-        setSuggestions([]);
-        try {
-            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=5&addressdetails=0`;
-            const res = await fetch(url, {
-                headers: { 'Accept-Language': 'fr', 'User-Agent': 'eDoctor-Patient-App/1.0' },
-            });
-            if (!res.ok) throw new Error('Erreur réseau');
-            const data: NominatimResult[] = await res.json();
-            if (data.length === 0) {
-                setSearchError('Aucun résultat trouvé. Essayez avec un autre nom.');
-            } else {
-                setSuggestions(data);
-            }
-        } catch {
-            setSearchError('Impossible de rechercher ce lieu. Vérifiez votre connexion.');
-        } finally {
-            setSearching(false);
-        }
-    }, []);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markerRef = useRef<google.maps.Marker | null>(null);
+  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
+  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
+  const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setQuery(val);
-        setSuggestions([]);
-        setSearchError('');
-        if (searchTimeout.current) clearTimeout(searchTimeout.current);
-        // Lancer la recherche automatiquement après 400ms de pause
-        if (val.trim().length >= 3) {
-            searchTimeout.current = setTimeout(() => {
-                searchPlace(val);
-            }, 400);
-        }
+  /* ── Load Google Maps ── */
+  useEffect(() => {
+    loadGoogleMaps().then(() => {
+      autocompleteServiceRef.current = new google.maps.places.AutocompleteService();
+      sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
+      setMapsReady(true);
+    });
+  }, []);
+
+  /* ── Init map quand visible ── */
+  useEffect(() => {
+    if (!mapVisible || !mapsReady || !mapContainerRef.current || mapRef.current) return;
+
+    const defaultCenter = markerCoords
+      ? { lat: markerCoords.lat, lng: markerCoords.lng }
+      : { lat: 3.8667, lng: 11.5167 };
+
+    const map = new google.maps.Map(mapContainerRef.current, {
+      center: defaultCenter,
+      zoom: 15,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+    });
+
+    mapRef.current = map;
+    placesServiceRef.current = new google.maps.places.PlacesService(map);
+
+    // Marqueur draggable
+    const marker = new google.maps.Marker({
+      position: defaultCenter,
+      map,
+      draggable: true,
+      title: 'Faites glisser pour ajuster',
+      icon: {
+        url: svgToUrl(DELIVERY_MARKER_SVG),
+        scaledSize: new google.maps.Size(40, 40),
+        anchor: new google.maps.Point(20, 40),
+      },
+    });
+    markerRef.current = marker;
+
+    const updateFromLatLng = (lat: number, lng: number) => {
+      setMarkerCoords({ lat, lng });
+      onLocationChange({
+        lat: lat.toFixed(6),
+        lng: lng.toFixed(6),
+        label: pickedLabel || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+      });
     };
 
-    const handleSelectSuggestion = (result: NominatimResult) => {
-        const lat = parseFloat(result.lat);
-        const lng = parseFloat(result.lon);
-        setMapCenter([lat, lng]);
-        setMarkerCoords({ lat, lng });
-        setPickedLabel(result.display_name);
-        setSuggestions([]);
-        setQuery(result.display_name.split(',')[0]);
-        onLocationChange({
-            lat: lat.toFixed(6),
-            lng: lng.toFixed(6),
-            label: result.display_name,
-        });
-    };
+    marker.addListener('dragend', () => {
+      const pos = marker.getPosition()!;
+      updateFromLatLng(pos.lat(), pos.lng());
+    });
 
-    const handleMarkerMove = useCallback((lat: number, lng: number) => {
-        setMarkerCoords({ lat, lng });
-        onLocationChange({
-            lat: lat.toFixed(6),
-            lng: lng.toFixed(6),
-            label: pickedLabel || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-        });
-    }, [onLocationChange, pickedLabel]);
+    map.addListener('click', (e: google.maps.MapMouseEvent) => {
+      if (!e.latLng) return;
+      marker.setPosition(e.latLng);
+      updateFromLatLng(e.latLng.lat(), e.latLng.lng());
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapVisible, mapsReady]);
 
-    const handleClear = () => {
-        setQuery('');
-        setSuggestions([]);
-        setSearchError('');
-        setMapCenter(null);
-        setMarkerCoords(null);
-        setPickedLabel('');
-        onLocationChange(null);
-    };
+  /* ── Mettre à jour la vue + marqueur quand les coords changent ── */
+  useEffect(() => {
+    if (!mapRef.current || !markerRef.current || !markerCoords) return;
+    const pos = { lat: markerCoords.lat, lng: markerCoords.lng };
+    mapRef.current.panTo(pos);
+    markerRef.current.setPosition(pos);
+  }, [markerCoords]);
 
-    // Leaflet CSS
-    useEffect(() => {
-        const id = 'leaflet-css';
-        if (!document.getElementById(id)) {
-            const link = document.createElement('link');
-            link.id = id;
-            link.rel = 'stylesheet';
-            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
-            document.head.appendChild(link);
+  /* ── Autocomplete Places ── */
+  const fetchSuggestions = useCallback((input: string) => {
+    if (!autocompleteServiceRef.current || !input.trim()) return;
+    setSearching(true);
+    setSearchError('');
+    autocompleteServiceRef.current.getPlacePredictions(
+      {
+        input,
+        sessionToken: sessionTokenRef.current ?? undefined,
+        componentRestrictions: { country: ['cm', 'ci', 'sn', 'mg', 'cd', 'ga', 'cg', 'gn'] },
+        types: ['geocode', 'establishment'],
+      },
+      (predictions, status) => {
+        setSearching(false);
+        if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+          setSuggestions(predictions);
+        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+          setSuggestions([]);
+          setSearchError('Aucun résultat. Essayez avec un autre nom de quartier ou adresse.');
+        } else {
+          setSuggestions([]);
         }
-    }, []);
-
-    return (
-        <div className="space-y-3">
-            {/* Search bar */}
-            <div className="relative">
-                <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={handleQueryChange}
-                        placeholder="Ex: Akwa Douala, Bastos Yaoundé…"
-                        className="w-full pl-9 pr-8 py-2.5 border border-gray-200 rounded-xl text-[13px] text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                    {query && (
-                        <button
-                            onClick={handleClear}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                            <X size={14} />
-                        </button>
-                    )}
-                    {searching && (
-                        <Loader2 size={13} className="absolute right-8 top-1/2 -translate-y-1/2 text-primary animate-spin" />
-                    )}
-                </div>
-
-                {/* Suggestions dropdown */}
-                {suggestions.length > 0 && (
-                    <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
-                        {suggestions.map((result) => (
-                            <button
-                                key={result.place_id}
-                                type="button"
-                                onClick={() => handleSelectSuggestion(result)}
-                                className="w-full flex items-start gap-2 px-3 py-2.5 text-left hover:bg-primary/5 transition-colors text-[12px] text-gray-700 border-b border-gray-100 last:border-0"
-                            >
-                                <MapPin size={13} className="text-primary mt-0.5 shrink-0" />
-                                <span className="line-clamp-2">{result.display_name}</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div>
-
-            {/* Search error */}
-            {searchError && (
-                <div className="flex items-start gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    <AlertCircle size={13} className="text-amber-500 shrink-0 mt-0.5" />
-                    <span className="text-[11px] text-amber-700">{searchError}</span>
-                </div>
-            )}
-
-            {/* Map */}
-            {mapCenter && (
-                <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-                    <div className="bg-primary/5 px-3 py-1.5 border-b border-gray-200 flex items-center gap-1.5">
-                        <MapPin size={11} className="text-primary" />
-                        <span className="text-[11px] text-gray-600 font-medium">
-                            Cliquez sur la carte ou faites glisser le marqueur pour ajuster le point de livraison
-                        </span>
-                    </div>
-                    <LeafletMapDynamic center={mapCenter} onMarkerMove={handleMarkerMove} />
-                </div>
-            )}
-
-            {/* Confirmed coordinates */}
-            {markerCoords && (
-                <div className="flex items-start gap-1.5 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                    <CheckCircle size={13} className="text-green-600 shrink-0 mt-0.5" />
-                    <div>
-                        <span className="text-[11px] text-green-700 font-semibold block">
-                            Point de livraison confirmé
-                        </span>
-                        <span className="text-[10px] text-green-600">
-                            {markerCoords.lat.toFixed(5)}, {markerCoords.lng.toFixed(5)}
-                        </span>
-                    </div>
-                </div>
-            )}
-
-            {!mapCenter && (
-                <p className="text-[11px] text-gray-400 italic">
-                    Recherchez un quartier ou une adresse, puis affinez le point sur la carte.
-                </p>
-            )}
-        </div>
+      }
     );
+  }, []);
+
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setQuery(val);
+    setSuggestions([]);
+    setSearchError('');
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (val.trim().length >= 2) {
+      searchTimeout.current = setTimeout(() => fetchSuggestions(val), 350);
+    }
+  };
+
+  const handleSelectSuggestion = (prediction: google.maps.places.AutocompletePrediction) => {
+    setSuggestions([]);
+    setQuery(prediction.structured_formatting.main_text);
+    setSearching(true);
+
+    // Renew session token after selection
+    sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
+
+    // Géocode le lieu
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ placeId: prediction.place_id }, (results, status) => {
+      setSearching(false);
+      if (status === 'OK' && results && results[0]) {
+        const loc = results[0].geometry.location;
+        const lat = loc.lat();
+        const lng = loc.lng();
+        const label = results[0].formatted_address;
+
+        setPickedLabel(label);
+        setMarkerCoords({ lat, lng });
+        setMapVisible(true);
+        onLocationChange({ lat: lat.toFixed(6), lng: lng.toFixed(6), label });
+      }
+    });
+  };
+
+  const handleClear = () => {
+    setQuery('');
+    setSuggestions([]);
+    setSearchError('');
+    setMapVisible(false);
+    setMarkerCoords(null);
+    setPickedLabel('');
+    mapRef.current = null;
+    markerRef.current = null;
+    onLocationChange(null);
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* Search bar */}
+      <div className="relative">
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            value={query}
+            onChange={handleQueryChange}
+            placeholder="Ex: Akwa Douala, Bastos Yaoundé…"
+            disabled={!mapsReady}
+            className="w-full pl-9 pr-8 py-2.5 border border-gray-200 rounded-xl text-[13px] text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all disabled:opacity-60"
+          />
+          {query && (
+            <button
+              onClick={handleClear}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X size={14} />
+            </button>
+          )}
+          {searching && (
+            <Loader2 size={13} className="absolute right-8 top-1/2 -translate-y-1/2 text-primary animate-spin" />
+          )}
+        </div>
+
+        {/* Suggestions dropdown */}
+        {suggestions.length > 0 && (
+          <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+            {suggestions.map((pred) => (
+              <button
+                key={pred.place_id}
+                type="button"
+                onClick={() => handleSelectSuggestion(pred)}
+                className="w-full flex items-start gap-2 px-3 py-2.5 text-left hover:bg-primary/5 transition-colors text-[12px] text-gray-700 border-b border-gray-100 last:border-0"
+              >
+                <MapPin size={13} className="text-primary mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-medium block">{pred.structured_formatting.main_text}</span>
+                  <span className="text-gray-400 text-[11px]">{pred.structured_formatting.secondary_text}</span>
+                </div>
+              </button>
+            ))}
+            <div className="flex items-center justify-end px-3 py-1.5 bg-gray-50 border-t border-gray-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white3.png" alt="Powered by Google" className="h-4" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Erreur */}
+      {searchError && (
+        <div className="flex items-start gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          <AlertCircle size={13} className="text-amber-500 shrink-0 mt-0.5" />
+          <span className="text-[11px] text-amber-700">{searchError}</span>
+        </div>
+      )}
+
+      {/* Map */}
+      {mapVisible && (
+        <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+          <div className="bg-primary/5 px-3 py-1.5 border-b border-gray-200 flex items-center gap-1.5">
+            <MapPin size={11} className="text-primary" />
+            <span className="text-[11px] text-gray-600 font-medium">
+              Cliquez sur la carte ou faites glisser le marqueur pour ajuster le point de livraison
+            </span>
+          </div>
+          <div ref={mapContainerRef} style={{ height: '380px', width: '100%' }} />
+        </div>
+      )}
+
+      {/* Coordonnées confirmées */}
+      {markerCoords && (
+        <div className="flex items-start gap-1.5 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+          <CheckCircle size={13} className="text-green-600 shrink-0 mt-0.5" />
+          <div>
+            <span className="text-[11px] text-green-700 font-semibold block">
+              {pickedLabel || 'Point de livraison confirmé'}
+            </span>
+            <span className="text-[10px] text-green-600">
+              {markerCoords.lat.toFixed(5)}, {markerCoords.lng.toFixed(5)}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {!mapVisible && (
+        <p className="text-[11px] text-gray-400 italic">
+          Recherchez un quartier ou une adresse pour afficher la carte et ajuster le point de livraison.
+        </p>
+      )}
+    </div>
+  );
 };
 
 export default DeliveryMapPicker;
