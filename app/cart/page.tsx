@@ -37,21 +37,66 @@ const CartPage = () => {
 
   useEffect(() => setMounted(true), []);
 
-  // Récupère le frais de livraison estimé depuis le backend selon la position
+  // Récupère le frais de livraison exact renvoyé par le backend selon la position GPS
   const fetchDeliveryFee = async (lat: string, lng: string) => {
     setFeeLoading(true);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = await api.getCartWithLocation(lat, lng) as any;
-      const rawFee = data?.delivery_fee ?? data?.cart?.delivery_fee;
-      const fee = typeof rawFee === 'number' ? rawFee : parseFloat(String(rawFee ?? '')) || 0;
+
+      // Log complet pour déboguer la structure exacte de la réponse
+      console.log('[fetchDeliveryFee] Réponse brute backend:', JSON.stringify(data, null, 2));
+
+      // Chercher delivery_fee dans tous les emplacements possibles de la réponse
+      const rawFee =
+        data?.delivery_fee ??
+        data?.cart?.delivery_fee ??
+        data?.data?.delivery_fee ??
+        data?.result?.delivery_fee ??
+        data?.delivery?.fee ??
+        null;
+
+      console.log('[fetchDeliveryFee] delivery_fee brut extrait:', rawFee, '(type:', typeof rawFee, ')');
+
+      if (rawFee == null) {
+        // Le backend n'a pas renvoyé de frais — on garde null pour afficher "Entrez votre adresse"
+        console.warn('[fetchDeliveryFee] Aucun champ delivery_fee trouvé dans la réponse');
+        return;
+      }
+
+      // Convertir en nombre (le backend peut renvoyer un string comme "2500.00")
+      const fee = typeof rawFee === 'number' ? rawFee : parseFloat(String(rawFee));
+      if (isNaN(fee)) {
+        console.warn('[fetchDeliveryFee] Impossible de parser delivery_fee:', rawFee);
+        return;
+      }
+
+      console.log('[fetchDeliveryFee] ✅ Frais de livraison final:', fee, 'FCFA');
       setEstimatedDeliveryFee(fee);
-    } catch {
-      // Si erreur, on laisse à null (pas de mise à jour
+    } catch (err) {
+      console.error('[fetchDeliveryFee] Erreur:', err);
     } finally {
       setFeeLoading(false);
     }
   };
+
+  // Géolocalisation automatique silencieuse au chargement
+  // pour obtenir immédiatement le vrai frais de livraison du backend
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        setCoords({ lat, lng });
+        fetchDeliveryFee(lat, lng);
+      },
+      () => { /* Silencieux — l'utilisateur peut toujours cliquer manuellement */ },
+      { timeout: 8000, maximumAge: 60000 }
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const detectGPS = () => {
     if (!navigator.geolocation) {

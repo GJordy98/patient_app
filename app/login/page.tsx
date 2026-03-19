@@ -64,7 +64,7 @@ export default function LoginPage() {
               className="rounded-2xl shadow-lg shadow-green-200"
             />
           </div>
-          <h1 className="text-[28px] font-bold text-[#1E293B] leading-none">e-doctor Pharma</h1>
+          <h1 className="text-[28px] font-bold text-[#1E293B] leading-none">e-Dr TIM Patient</h1>
           <p className="text-[14px] text-[#94A3B8] mt-2">Connectez-vous à votre compte patient</p>
         </div>
 
