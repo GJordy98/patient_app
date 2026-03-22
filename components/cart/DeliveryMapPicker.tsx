@@ -205,8 +205,8 @@ const DeliveryMapPicker: React.FC<DeliveryMapPickerProps> = ({ onLocationChange 
 
   return (
     <div className="space-y-3">
-      {/* Search bar */}
-      <div className="relative">
+      {/* Search bar — z-index élevé pour que le dropdown passe au-dessus de la carte */}
+      <div className="relative z-50">
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <input
@@ -232,7 +232,7 @@ const DeliveryMapPicker: React.FC<DeliveryMapPickerProps> = ({ onLocationChange 
 
         {/* Suggestions dropdown */}
         {suggestions.length > 0 && (
-          <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+          <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
             {suggestions.map((pred) => (
               <button
                 key={pred.place_id}
