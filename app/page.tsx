@@ -589,8 +589,8 @@ export default function HomePage() {
               {/* Conteneur tags + input */}
               <div
                 className={`flex flex-wrap items-center gap-1.5 w-full pl-10 pr-9 py-2 border rounded-xl bg-white transition-all cursor-text ${inputFocused || showSuggestions
-                    ? "border-[#22C55E] ring-2 ring-[#22C55E]/20"
-                    : "border-[#E2E8F0]"
+                  ? "border-[#22C55E] ring-2 ring-[#22C55E]/20"
+                  : "border-[#E2E8F0]"
                   }`}
                 onClick={() => inputRef.current?.focus()}
               >
@@ -691,39 +691,7 @@ export default function HomePage() {
                   {/* Champ adresse avec Places Autocomplete */}
                   <div ref={addressSuggestionsRef} className="relative flex-1">
                     <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#EF4444]" />
-                    <input
-                      ref={addressInputRef}
-                      type="text"
-                      value={deliveryAddress}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setDeliveryAddress(val);
-                        setShowAddressSuggestions(false);
-                        if (addressSearchTimeoutRef.current) clearTimeout(addressSearchTimeoutRef.current);
-                        if (val.trim().length >= 2 && addressAutocompleteRef.current) {
-                          addressSearchTimeoutRef.current = setTimeout(() => {
-                            addressAutocompleteRef.current!.getPlacePredictions(
-                              {
-                                input: val,
-                                sessionToken: addressSessionTokenRef.current ?? undefined,
-                                componentRestrictions: { country: ['cm', 'ci', 'sn', 'mg', 'cd', 'ga', 'cg', 'gn'] },
-                                types: ['geocode', 'establishment'],
-                              },
-                              (predictions, status) => {
-                                if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-                                  setAddressSuggestions(predictions.slice(0, 5));
-                                  setShowAddressSuggestions(true);
-                                } else {
-                                  setAddressSuggestions([]);
-                                }
-                              }
-                            );
-                          }, 350);
-                        }
-                      }}
-                      placeholder="Quartier ou adresse de livraison…"
-                      className="w-full pl-8 pr-4 py-2 border border-[#E2E8F0] rounded-lg text-[13px] focus:outline-none focus:border-[#EF4444] transition-all"
-                    />
+
                     {/* Dropdown suggestions */}
                     {showAddressSuggestions && addressSuggestions.length > 0 && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E2E8F0] rounded-xl shadow-lg z-[1100] overflow-hidden">
@@ -765,8 +733,8 @@ export default function HomePage() {
                   <button
                     onClick={() => setPointingOnMap(true)}
                     className={`flex items-center gap-1.5 py-2 px-3 rounded-lg border text-[12px] font-medium transition-colors whitespace-nowrap ${pointingOnMap
-                        ? "bg-[#EF4444] border-[#EF4444] text-white"
-                        : "border-[#E2E8F0] text-[#94A3B8] hover:border-[#EF4444] hover:text-[#EF4444]"
+                      ? "bg-[#EF4444] border-[#EF4444] text-white"
+                      : "border-[#E2E8F0] text-[#94A3B8] hover:border-[#EF4444] hover:text-[#EF4444]"
                       }`}
                   >
                     <Navigation size={13} />
