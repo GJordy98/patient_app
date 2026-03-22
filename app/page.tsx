@@ -88,9 +88,8 @@ function PharmacyCard({
     <div
       onMouseEnter={() => onHover(String(pharmacy.id))}
       onMouseLeave={() => onHover(null)}
-      className={`bg-white rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${
-        highlighted ? "border-[#22C55E] shadow-lg ring-1 ring-[#22C55E]/20" : "border-[#E2E8F0] shadow-sm hover:shadow-md hover:border-[#22C55E]/40"
-      }`}
+      className={`bg-white rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${highlighted ? "border-[#22C55E] shadow-lg ring-1 ring-[#22C55E]/20" : "border-[#E2E8F0] shadow-sm hover:shadow-md hover:border-[#22C55E]/40"
+        }`}
     >
       <div className="p-5">
         {/* TOP : matchCount + prix */}
@@ -589,11 +588,10 @@ export default function HomePage() {
             <div ref={suggestionsRef} className="relative">
               {/* Conteneur tags + input */}
               <div
-                className={`flex flex-wrap items-center gap-1.5 w-full pl-10 pr-9 py-2 border rounded-xl bg-white transition-all cursor-text ${
-                  inputFocused || showSuggestions
+                className={`flex flex-wrap items-center gap-1.5 w-full pl-10 pr-9 py-2 border rounded-xl bg-white transition-all cursor-text ${inputFocused || showSuggestions
                     ? "border-[#22C55E] ring-2 ring-[#22C55E]/20"
                     : "border-[#E2E8F0]"
-                }`}
+                  }`}
                 onClick={() => inputRef.current?.focus()}
               >
                 {/* Icône loupe */}
@@ -669,9 +667,8 @@ export default function HomePage() {
                         e.preventDefault(); // prevent input blur before addProduct
                         addProduct(s);
                       }}
-                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-[13px] text-[#1E293B] hover:bg-[#F0FDF4] transition-colors ${
-                        idx < suggestions.length - 1 ? "border-b border-[#F1F5F9]" : ""
-                      }`}
+                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-[13px] text-[#1E293B] hover:bg-[#F0FDF4] transition-colors ${idx < suggestions.length - 1 ? "border-b border-[#F1F5F9]" : ""
+                        }`}
                     >
                       <Pill size={13} className="text-[#22C55E] shrink-0" />
                       {s.name}
@@ -687,19 +684,7 @@ export default function HomePage() {
 
             {/* Toggle adresse de livraison */}
             <div className="mt-2 flex items-center gap-3 flex-wrap">
-              <button
-                onClick={() => setUseCurrentLocation(!useCurrentLocation)}
-                className="flex items-center gap-2 text-left shrink-0"
-              >
-                {useCurrentLocation ? (
-                  <ToggleRight size={22} className="text-[#22C55E]" />
-                ) : (
-                  <ToggleLeft size={22} className="text-[#94A3B8]" />
-                )}
-                <span className="text-[13px] font-medium text-[#1E293B]">
-                  {useCurrentLocation ? "Livrer à ma position actuelle" : "Choisir une autre adresse"}
-                </span>
-              </button>
+
 
               {!useCurrentLocation && (
                 <div className="flex items-center gap-2 flex-1 min-w-[240px]">
@@ -779,11 +764,10 @@ export default function HomePage() {
                   </div>
                   <button
                     onClick={() => setPointingOnMap(true)}
-                    className={`flex items-center gap-1.5 py-2 px-3 rounded-lg border text-[12px] font-medium transition-colors whitespace-nowrap ${
-                      pointingOnMap
+                    className={`flex items-center gap-1.5 py-2 px-3 rounded-lg border text-[12px] font-medium transition-colors whitespace-nowrap ${pointingOnMap
                         ? "bg-[#EF4444] border-[#EF4444] text-white"
                         : "border-[#E2E8F0] text-[#94A3B8] hover:border-[#EF4444] hover:text-[#EF4444]"
-                    }`}
+                      }`}
                   >
                     <Navigation size={13} />
                     {pointingOnMap ? "Cliquez…" : "Sur la carte"}
