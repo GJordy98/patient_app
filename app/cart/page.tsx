@@ -423,7 +423,7 @@ const CartPage = () => {
 
         {/* Carte pleine largeur — mode saisie manuelle */}
         {locationMode === 'manual' && items.length > 0 && (
-          <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <MapPin size={15} className="text-primary" />
