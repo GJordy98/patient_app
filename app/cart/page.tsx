@@ -23,8 +23,11 @@ const CartPage = () => {
   const [checkingOut, setCheckingOut] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<{ orderId: string } | null>(null);
 
-  // Frais de livraison estimés dynamiquement selon la position
+  // Frais de livraison : null tant qu'aucun lieu de livraison n'a été sélectionné
   const [estimatedDeliveryFee, setEstimatedDeliveryFee] = useState<number | null>(null);
+
+  // 0 si aucun lieu choisi, valeur backend sinon
+  const displayedDeliveryFee = estimatedDeliveryFee ?? 0;
   const [feeLoading, setFeeLoading] = useState(false);
 
   // Localisation de livraison
@@ -284,10 +287,8 @@ const CartPage = () => {
                         <span className="text-gray-400 text-sm italic flex items-center gap-1">
                           <Loader2 size={12} className="animate-spin" /> Calcul…
                         </span>
-                      ) : estimatedDeliveryFee === null ? (
-                        <span className="text-gray-400 text-sm italic">Entrez votre adresse</span>
-                      ) : estimatedDeliveryFee > 0 ? (
-                        <span>{estimatedDeliveryFee.toLocaleString('fr-FR')} FCFA</span>
+                      ) : displayedDeliveryFee > 0 ? (
+                        <span>{displayedDeliveryFee.toLocaleString('fr-FR')} FCFA</span>
                       ) : (
                         <span className="text-green-600 font-semibold">Gratuit</span>
                       )}
@@ -298,7 +299,7 @@ const CartPage = () => {
                     <span>Total</span>
                     <span className="text-primary">
                       {items.length > 0
-                        ? (cartTotal + (estimatedDeliveryFee ?? 0)).toLocaleString('fr-FR')
+                        ? (cartTotal + displayedDeliveryFee).toLocaleString('fr-FR')
                         : cartTotal.toLocaleString('fr-FR')
                       } FCFA
                     </span>
