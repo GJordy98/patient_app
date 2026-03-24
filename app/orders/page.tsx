@@ -21,13 +21,13 @@ import { Order } from "@/types/order";
 import { useAutoRefresh } from "@/hooks/autoRefresh";
 
 /* ── Status groups (statuts réels backend) ── */
-const PREPARATION = ["PENDING", "ACCEPTED", "RESERVED", "PARTIAL_VALIDATION", "PENDING_PATIENT"];
-const EN_LIVRAISON = ["IN_PICKUP", "IN_DELIVERY"];
+const PREPARATION = ["PENDING", "PARTIAL_VALIDATION", "VALIDATED", "PAYMENT_PENDING", "ACCEPTED", "RESERVED", "PENDING_PATIENT"];
+const EN_LIVRAISON = ["IN_PICKUP", "IN_TRANSIT", "IN_DELIVERY"];
 const TERMINE = ["DELIVERED", "COMPLETED"];
 const ANNULE = ["CANCELLED", "REJECTED"];
 
 /* Statuts où au moins 1 pharmacie a validé → facture disponible */
-const PHARMACY_VALIDATED = ["PARTIAL_VALIDATION", "ACCEPTED", "IN_PICKUP", "IN_DELIVERY", "DELIVERED", "COMPLETED"];
+const PHARMACY_VALIDATED = ["PARTIAL_VALIDATION", "VALIDATED", "IN_PICKUP", "IN_TRANSIT", "DELIVERED", "COMPLETED", "ACCEPTED", "IN_DELIVERY"];
 const hasPharmacyValidated = (status: string) => PHARMACY_VALIDATED.includes(status?.toUpperCase());
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";

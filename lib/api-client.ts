@@ -661,29 +661,28 @@ class ApiClient {
 
     let rawOrder: Record<string, unknown> | null = null;
 
-    /* 1. Endpoints directs */
-    const candidateEndpoints = [
-      `/officine-order/${orderId}/`,
-    ];
-    for (const endpoint of candidateEndpoints) {
-      try {
-        rawOrder = await this.request<Record<string, unknown>>(endpoint, {}, true);
-        break;
-      } catch {
-        // endpoint non disponible, on continue
-      }
+    /* 1. Chercher dans la liste complète des commandes patient en priorité (évite les 404) */
+    try {
+      const list = await this.getMyOrders();
+      const orders = Array.isArray(list) ? list : (list.results || []);
+      const found = orders.find((o) => o.id === orderId || o.order_id === orderId);
+      rawOrder = found ? (found as unknown as Record<string, unknown>) : null;
+    } catch (err) {
+      console.error('[getOrderById] Erreur liste:', err);
     }
 
-    /* 2. Fallback : chercher dans la liste complète des commandes patient */
+    /* 2. Fallback : Endpoints directs (si c'est un ID d'officine-order venu d'une notif) */
     if (!rawOrder) {
-      try {
-        const list = await this.getMyOrders();
-        const orders = Array.isArray(list) ? list : (list.results || []);
-        const found = orders.find((o) => o.id === orderId || o.order_id === orderId);
-        rawOrder = found ? (found as unknown as Record<string, unknown>) : null;
-      } catch (err) {
-        console.error('[getOrderById] Erreur liste:', err);
-        return null;
+      const candidateEndpoints = [
+        `/officine-order/${orderId}/`,
+      ];
+      for (const endpoint of candidateEndpoints) {
+        try {
+          rawOrder = await this.request<Record<string, unknown>>(endpoint, {}, true);
+          break;
+        } catch {
+          // endpoint non disponible, on continue
+        }
       }
     }
 
@@ -723,6 +722,24 @@ class ApiClient {
     } catch {
       return [];
     }
+  }
+
+  async downloadInvoicePDF(orderId: string): Promise<Blob> {
+    const { access } = this.getTokens();
+    const headers: Record<string, string> = {};
+    if (access) headers['Authorization'] = `Bearer ${access}`;
+    
+    // Le endpoint exact fourni par l'utilisateur
+    const response = await fetch(`${API_CONFIG.BASE_URL}/get-invoice-order-patient/${orderId}/pdf/`, {
+      method: 'GET',
+      headers
+    });
+
+    if (!response.ok) {
+      throw new Error('Erreur lors du téléchargement de la facture PDF');
+    }
+
+    return response.blob();
   }
 
   async validateInvoice(orderId: string): Promise<{ success: boolean; message: string }> {

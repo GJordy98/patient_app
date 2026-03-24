@@ -524,14 +524,16 @@ export default function HomePage() {
     async (pharmacyId: string, items: CatalogItem[]) => {
       setAddingToCartPharmacyId(pharmacyId);
       try {
-        // Appels API en parallèle SANS refreshCart intermédiaire,
-        // puis un seul refreshCart à la fin pour éviter les conflits.
-        await Promise.allSettled(
-          items.map((ci) => {
-            const productId = String(ci.product?.id ?? ci.id);
-            return api.addToCart(productId, 1, pharmacyId);
-          })
-        );
+        // Appels API séquentiels au lieu de parallèles pour éviter
+        // les conflits côté backend (ex: création multiple de panier)
+        for (const ci of items) {
+          const productId = String(ci.product?.id ?? ci.id);
+          try {
+            await api.addToCart(productId, 1, pharmacyId);
+          } catch (err) {
+            console.error(`Erreur lors de l'ajout du produit ${productId}`, err);
+          }
+        }
         await refreshCart();
       } finally {
         setAddingToCartPharmacyId(null);

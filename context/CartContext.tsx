@@ -47,8 +47,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Merge with local storage for prices (as in original cart.js)
       const localCart: Partial<CartItem>[] = JSON.parse(localStorage.getItem('local_cart') || '[]');
-      
-      console.log('[CartContext] Raw API cart data:', JSON.stringify(data, null, 2));
 
       // The API returns { cart: { id, items, total_amount, ... }, delivery_fee }
       // or could return an array of items directly (legacy/fallback)

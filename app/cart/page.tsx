@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Header from '@/components/layout/Header';
@@ -40,51 +40,68 @@ const CartPage = () => {
 
   useEffect(() => setMounted(true), []);
 
-  // Récupère le frais de livraison exact renvoyé par le backend selon la position GPS
-  const fetchDeliveryFee = async (lat: string, lng: string) => {
-    setFeeLoading(true);
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const data = await api.getCartWithLocation(lat, lng) as any;
+  const getDeliveryCoords = useCallback((): { lat: string; lng: string } | null => {
+    if (locationMode === 'auto') return coords;
+    if (pickedLocation) return { lat: pickedLocation.lat, lng: pickedLocation.lng };
+    return null;
+  }, [locationMode, coords, pickedLocation]);
 
-      // Log complet pour déboguer la structure exacte de la réponse
-      console.log('[fetchDeliveryFee] Réponse brute backend:', JSON.stringify(data, null, 2));
+  // Calcul du frais de livraison côté front : 100 FCFA / km
+  useEffect(() => {
+    const calculateFrontendDeliveryFee = async () => {
+      const deliveryCoords = getDeliveryCoords();
+      if (!deliveryCoords || items.length === 0) return;
 
-      // Chercher delivery_fee dans tous les emplacements possibles de la réponse
-      const rawFee =
-        data?.delivery_fee ??
-        data?.cart?.delivery_fee ??
-        data?.data?.delivery_fee ??
-        data?.result?.delivery_fee ??
-        data?.delivery?.fee ??
-        null;
-
-      console.log('[fetchDeliveryFee] delivery_fee brut extrait:', rawFee, '(type:', typeof rawFee, ')');
-
-      if (rawFee == null) {
-        // Le backend n'a pas renvoyé de frais — on garde null pour afficher "Entrez votre adresse"
-        console.warn('[fetchDeliveryFee] Aucun champ delivery_fee trouvé dans la réponse');
+      let pharmacyId = items[0]?.pharmacy_id;
+      if (typeof pharmacyId === 'object' && pharmacyId !== null) {
+        pharmacyId = (pharmacyId as any).id;
+      }
+      
+      const pharmacyIdStr = String(pharmacyId || '');
+      if (!pharmacyIdStr) {
+        setEstimatedDeliveryFee(1000); // 1000 FCFA minimum si l'ID est introuvable
         return;
       }
 
-      // Convertir en nombre (le backend peut renvoyer un string comme "2500.00")
-      const fee = typeof rawFee === 'number' ? rawFee : parseFloat(String(rawFee));
-      if (isNaN(fee)) {
-        console.warn('[fetchDeliveryFee] Impossible de parser delivery_fee:', rawFee);
-        return;
-      }
+      setFeeLoading(true);
+      try {
+        const pharmacy = await api.getPharmacyDetails(pharmacyIdStr);
+        if (!pharmacy || pharmacy.latitude == null || pharmacy.longitude == null) {
+          console.warn('[calculateFrontendDeliveryFee] Coordonnées de la pharmacie introuvables');
+          setEstimatedDeliveryFee(1000); // 1000 par défaut si pas de coordonnées
+          return;
+        }
 
-      console.log('[fetchDeliveryFee] ✅ Frais de livraison final:', fee, 'FCFA');
-      setEstimatedDeliveryFee(fee);
-    } catch (err) {
-      console.error('[fetchDeliveryFee] Erreur:', err);
-    } finally {
-      setFeeLoading(false);
-    }
-  };
+        const lat1 = Number(pharmacy.latitude);
+        const lon1 = Number(pharmacy.longitude);
+        const lat2 = Number(deliveryCoords.lat);
+        const lon2 = Number(deliveryCoords.lng);
+
+        const R = 6371; // Rayon de la terre (km)
+        const dLat = (lat2 - lat1) * (Math.PI / 180);
+        const dLon = (lon2 - lon1) * (Math.PI / 180);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c;
+
+        // 100 FCFA par km, avec un minimum forfaitaire pour éviter "Gratuit"
+        const fee = Math.max(1000, Math.round(distance * 100));
+        console.log('[Frontend Delivery Fee] distance:', distance.toFixed(2), 'km -> fee:', fee, 'FCFA');
+        setEstimatedDeliveryFee(fee);
+      } catch (err) {
+        console.error('[calculateFrontendDeliveryFee] Erreur calcul:', err);
+        setEstimatedDeliveryFee(1000); // Valeur forfaitaire en cas d'erreur de communication
+      } finally {
+        setFeeLoading(false);
+      }
+    };
+    calculateFrontendDeliveryFee();
+  }, [getDeliveryCoords, items]);
 
   // Géolocalisation automatique silencieuse au chargement
-  // pour obtenir immédiatement le vrai frais de livraison du backend
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
@@ -92,14 +109,11 @@ const CartPage = () => {
         const lat = pos.coords.latitude.toFixed(6);
         const lng = pos.coords.longitude.toFixed(6);
         setCoords({ lat, lng });
-        fetchDeliveryFee(lat, lng);
       },
-      () => { /* Silencieux — l'utilisateur peut toujours cliquer manuellement */ },
+      () => { /* Silencieux */ },
       { timeout: 8000, maximumAge: 60000 }
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
 
   const detectGPS = () => {
     if (!navigator.geolocation) {
@@ -115,7 +129,6 @@ const CartPage = () => {
         const lng = pos.coords.longitude.toFixed(6);
         setCoords({ lat, lng });
         setGpsLoading(false);
-        fetchDeliveryFee(lat, lng);
       },
       () => {
         setGpsError('Impossible de récupérer votre position. Vérifiez les autorisations.');
@@ -123,12 +136,6 @@ const CartPage = () => {
       },
       { timeout: 10000 }
     );
-  };
-
-  const getDeliveryCoords = (): { lat: string; lng: string } | null => {
-    if (locationMode === 'auto') return coords;
-    if (pickedLocation) return { lat: pickedLocation.lat, lng: pickedLocation.lng };
-    return null;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,6 +168,7 @@ const CartPage = () => {
       formData.append('cart_id', cartId);
       formData.append('latitude', deliveryCoords.lat);
       formData.append('longitude', deliveryCoords.lng);
+
       if (prescriptionFile) {
         formData.append('prescription', prescriptionFile);
       }
@@ -443,7 +451,6 @@ const CartPage = () => {
               <DeliveryMapPicker
                 onLocationChange={(loc) => {
                   setPickedLocation(loc);
-                  if (loc) fetchDeliveryFee(loc.lat, loc.lng);
                 }}
               />
             </div>

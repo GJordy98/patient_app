@@ -24,6 +24,7 @@ import {
   Store,
   Hash,
   ShieldAlert,
+  Download,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -52,9 +53,9 @@ const STEPS = [
 
 function getStepIndex(status: string): number {
   const s = status?.toUpperCase();
-  if (["PENDING", "ACCEPTED", "RESERVED", "PARTIAL_VALIDATION", "PENDING_PATIENT"].includes(s)) return 0;
+  if (["PENDING", "PARTIAL_VALIDATION", "VALIDATED", "PAYMENT_PENDING", "ACCEPTED", "RESERVED", "PENDING_PATIENT"].includes(s)) return 0;
   if (["IN_PICKUP"].includes(s)) return 1;
-  if (["IN_DELIVERY"].includes(s)) return 2;
+  if (["IN_TRANSIT", "IN_DELIVERY"].includes(s)) return 2;
   if (["DELIVERED", "COMPLETED"].includes(s)) return 3;
   return 0;
 }
@@ -530,19 +531,50 @@ export default function OrderDetailPage() {
   const [rejecting, setRejecting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [isSubValidating, setIsSubValidating] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+
+  const handleDownloadInvoice = async () => {
+    if (!order) return;
+    try {
+      setDownloadingInvoice(true);
+      const blob = await api.downloadInvoicePDF(order.id);
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `facture_commande_${String(order.id).slice(-6)}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      if (link.parentNode) link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err.message || 'Erreur lors du téléchargement' });
+    } finally {
+      setDownloadingInvoice(false);
+    }
+  };
 
   const fetchOrder = useCallback(async () => {
     if (!id) return;
     try {
-      // 1. Récupère l'officine-order — son `data.id` est l'officine-order ID
+      // 1. Récupère l'officine-order ou patient-order
       const data = await api.getOrderById(id);
       setOrder(data);
 
-      // 2. Utilise data.id (officine-order ID) pour les appels dépendants
-      const officineOrderId = data?.id ?? id;
+      if (!data) {
+        setLoading(false);
+        return;
+      }
+
+      // 2. Utilise data.id pour les appels dépendants
+      const officineOrderId = data.id ?? id;
+      
+      // Éviter la requête getSubOrderItems si le statut est PENDING (pas de pharmacie assignée) pour éviter une erreur 404
+      const isPending = data.status?.toUpperCase() === 'PENDING';
+
       const [invData, subData] = await Promise.all([
         api.getInvoiceByOrderId(officineOrderId),
-        api.getSubOrderItems(officineOrderId),
+        isPending ? Promise.resolve([]) : api.getSubOrderItems(officineOrderId),
       ]);
       setInvoices(invData);
       setSubItems(subData);
@@ -616,12 +648,12 @@ export default function OrderDetailPage() {
 
   // Le patient doit encore valider → statuts envoyés par la pharmacie
   const isPendingValidation = [
-    "PENDING_PATIENT", "ACCEPTED", "PARTIAL_VALIDATION", "RESERVED",
+    "PARTIAL_VALIDATION", "VALIDATED", "PAYMENT_PENDING", "PENDING_PATIENT", "ACCEPTED", "RESERVED",
     "UNPAID",   // statut possible quand la pharmacie a généré la facture
   ].includes(order.status?.toUpperCase());
   // Commande initiée mais pharmacie n'a pas encore répondu
   const isPendingPharmacy = ["PENDING"].includes(order.status?.toUpperCase());
-  const isLive = ["IN_PICKUP", "IN_DELIVERY"].includes(order.status?.toUpperCase());
+  const isLive = ["IN_PICKUP", "IN_TRANSIT", "IN_DELIVERY"].includes(order.status?.toUpperCase());
   const isFinished = ["DELIVERED", "COMPLETED"].includes(order.status?.toUpperCase());
   const hasInvoices = invoices.length > 0;
 
@@ -835,6 +867,17 @@ export default function OrderDetailPage() {
                 isPendingValidation={false}
                 confirmed={confirmed}
               />
+
+              <div className="pt-2">
+                <button
+                  onClick={handleDownloadInvoice}
+                  disabled={downloadingInvoice}
+                  className="w-full bg-white border border-[#22C55E] text-[#22C55E] hover:bg-[#F0FDF4] font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-[14px] shadow-sm"
+                >
+                  {downloadingInvoice ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                  Télécharger votre facture
+                </button>
+              </div>
 
               {/* ──── CARTE D'ACTION : valider ou annuler ──── */}
               {showValidationButtons && (
